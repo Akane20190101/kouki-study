@@ -103,6 +103,12 @@
   .grade .perfect{margin-top:10px;font-weight:800;color:#0e7a52;}
   .grade .err{color:var(--red);font-size:14px;}
   @media (prefers-color-scheme: dark){ .grade .fixed .rf, .grade ol .rf{color:#ff6b78;} }
+  .sg{margin-top:10px;border:2px solid #b9d4ff;border-radius:14px;padding:12px;background:var(--card);}
+  .sg .sgh{font-size:14px;font-weight:900;color:var(--blue-dark);margin-bottom:8px;}
+  .sg .op{display:block;width:100%;text-align:left;margin-top:8px;border:1px solid var(--line);background:var(--chip);color:var(--navy);border-radius:12px;padding:10px 12px;font-family:inherit;cursor:pointer;}
+  .sg .op b{display:block;font-size:16px;}
+  .sg .op small{display:block;font-size:12px;color:var(--gray);margin-top:2px;}
+  .sg .wait{font-size:13px;color:var(--gray);}
 </style>
 </head>
 <body>
@@ -365,7 +371,7 @@ function honban(s, si, qi, head, next){
   const tabs = s.qs.map((x,k)=>`<button class="${k===qi?'on':''}" data-k="${k}">${k+1}. ${x.ja}</button>`).join('');
   app.innerHTML = `<div class="tabs">${tabs}</div><div class="panel">
     <div class="prompt">${esc(q.prompt)}<small>${q.ja}（${GOAL}語 いじょう）</small></div>
-    <div class="part"><h3>① はじめ（1〜2文）</h3><p>なにに ついて 書くか を 言う</p><textarea data-k="0" spellcheck="false">${esc(saved[0])}</textarea></div>
+    <div class="part"><h3>① はじめ（1〜2文）</h3><p>なにに ついて 書くか を 言う</p><textarea data-k="0" spellcheck="false">${esc(saved[0])}</textarea><div id="sg"></div></div>
     <div class="part"><h3>② なか（3〜5文）</h3><p>りゆう や れい を 書く。because / for example / first, second を つかおう</p><textarea data-k="1" spellcheck="false" style="min-height:140px">${esc(saved[1])}</textarea></div>
     <div class="part"><h3>③ おわり（1〜2文）</h3><p>まとめ・気もち・これから</p><textarea data-k="2" spellcheck="false">${esc(saved[2])}</textarea></div>
     <div class="wc" id="wc"></div>
@@ -384,6 +390,7 @@ function honban(s, si, qi, head, next){
   upd();
   document.getElementById('sp').onclick = () => speak(q.model);
   gradeButton(document.getElementById('gb'), () => tas.map(t=>t.value.trim()).filter(Boolean).join(' '), q.prompt + ' (about ' + GOAL + ' words)');
+  suggestNext(tas, q.prompt, () => { S.honbanText = S.honbanText || {}; S.honbanText[qi] = tas.map(x=>x.value); save(); upd(); });
   app.querySelectorAll('.tabs button').forEach(b => b.onclick = () => openStep(si, +b.dataset.k));
   document.getElementById('nx').onclick = next;
 }
@@ -420,6 +427,44 @@ function gradeButton(box, getText, task){
     }
     btn.disabled = false; btn.textContent = '✏️ もういちど 採点してもらう';
   };
+}
+
+// ===== はじめの文を書いたら、つぎの文の3択を出す =====
+const SUGGEST_URL = 'https://kouki-malaysia-app.netlify.app/api/suggest';
+function suggestNext(tas, task, onPick){
+  const box = document.getElementById('sg');
+  let timer = null, shownFor = '', pickedFor = '', seq = 0;
+  const firstSentence = () => { const m = tas[0].value.match(/^[\s\S]*?[.!?](?=\s|$)/); return m ? m[0].trim() : ''; };
+  const trigger = () => {
+    clearTimeout(timer);
+    timer = setTimeout(async () => {
+      const fs = firstSentence();
+      if(!fs || wordCount(fs) < 3 || fs === shownFor || fs === pickedFor) return;
+      shownFor = fs;
+      const my = ++seq;
+      box.innerHTML = '<div class="sg"><div class="wait">つぎの 文の こうほを かんがえています…</div></div>';
+      try{
+        const r = await fetch(SUGGEST_URL, {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({text: fs, task})});
+        const g = await r.json();
+        if(my !== seq) return;
+        if(!r.ok || g.error) throw new Error(g.error || 'error');
+        box.innerHTML = `<div class="sg"><div class="sgh">つぎの 文は どれに する？（タップで ② なかに 入るよ）</div>
+          ${g.options.map((o,k) => `<button class="op" data-k="${k}"><b>${esc(o.en)}</b><small>${esc(o.ja)}</small></button>`).join('')}</div>`;
+        box.querySelectorAll('.op').forEach(b => b.onclick = () => {
+          const en = g.options[+b.dataset.k].en;
+          tas[1].value = (tas[1].value.trim() ? tas[1].value.trim() + ' ' : '') + en + ' ';
+          pickedFor = fs;
+          box.innerHTML = '<div class="sg"><div class="wait">✅ ② なかに 入れたよ。つづきを 書いてみよう</div></div>';
+          onPick();
+          tas[1].focus();
+        });
+      }catch(e){
+        if(my === seq){ box.innerHTML = ''; shownFor = ''; }
+      }
+    }, 1000);
+  };
+  tas[0].addEventListener('input', trigger);
+  tas[0].addEventListener('blur', trigger);
 }
 
 home();
