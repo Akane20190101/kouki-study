@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#4d8bff">
+<title>英作文ステップ</title>
+<style>
+  :root{
+    --blue:#4d8bff; --blue-dark:#2f6ae0; --cream:#f4f9ff; --navy:#233047;
+    --gray:#6b7488; --card:#ffffff; --line:#dbe7f7; --green:#22b07a; --red:#ef5a6b;
+    --chip:#eaf2ff; --input:#ffffff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --cream:#0f1826; --navy:#e6edf8; --gray:#9aa6bb; --card:#18243a; --line:#2a3a56; --chip:#20314f; --input:#101a2b; }
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:"Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;background:var(--cream);color:var(--navy);line-height:1.6;min-height:100dvh;}
+  header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:8px;
+    padding:calc(12px + env(safe-area-inset-top)) 14px 12px;background:var(--blue);color:#fff;box-shadow:0 2px 10px rgba(77,139,255,.25);}
+  header a,header button{color:#fff;text-decoration:none;font-size:15px;font-weight:800;background:none;border:none;cursor:pointer;}
+  .htitle{flex:1;text-align:center;font-size:18px;font-weight:900;}
+  .hspace{width:60px;}
+  .wrap{max-width:560px;margin:0 auto;padding:14px 16px 40px;}
+  ruby{ruby-align:center;} rt{font-size:.5em;font-weight:600;color:var(--gray);user-select:none;}
+  header rt{color:#eaf2ff;}
+
+  .hero{text-align:center;margin:6px 0 14px;}
+  .hero h1{font-size:20px;font-weight:900;}
+  .hero p{font-size:13px;color:var(--gray);}
+
+  .step{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;
+    padding:12px 14px;margin-bottom:10px;cursor:pointer;box-shadow:0 2px 8px rgba(35,48,71,.05);}
+  .step:active{transform:scale(.98);}
+  .step .num{flex:none;width:58px;height:50px;border-radius:12px;background:var(--chip);display:flex;align-items:center;justify-content:center;font-size:11px;white-space:nowrap;font-weight:900;color:var(--blue-dark);flex-direction:column;line-height:1.1;}
+  .step .num b{font-size:18px;}
+  .step .body{flex:1;min-width:0;}
+  .step .t{font-size:16px;font-weight:800;}
+  .step .m{font-size:12px;color:var(--gray);}
+  .bar{height:6px;border-radius:99px;background:var(--line);margin-top:6px;overflow:hidden;}
+  .bar i{display:block;height:100%;background:var(--green);border-radius:99px;}
+  .step .chev{color:#b9c6da;font-size:20px;font-weight:900;}
+  .stairs{display:flex;flex-direction:column-reverse;}
+
+  .qcount{text-align:center;font-size:13px;font-weight:800;color:var(--gray);margin-bottom:8px;}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:0 2px 8px rgba(35,48,71,.05);}
+  .ja{font-size:17px;font-weight:800;margin-bottom:12px;}
+  .howto{font-size:13px;color:var(--gray);margin-bottom:10px;}
+  .slot{min-height:56px;border:2px dashed #bcd2f2;border-radius:14px;padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px;}
+  .pool{display:flex;flex-wrap:wrap;gap:8px;}
+  .w{border:1px solid var(--line);background:var(--chip);color:var(--navy);border-radius:10px;padding:8px 12px;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .w.used{visibility:hidden;}
+  .sent{font-size:18px;font-weight:700;margin:6px 0 14px;line-height:1.9;}
+  .blank{display:inline-block;min-width:70px;border-bottom:3px solid var(--blue);text-align:center;color:var(--blue-dark);}
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .choices .w{text-align:center;}
+  input[type=text],textarea{width:100%;font-size:17px;font-family:inherit;padding:10px 12px;border-radius:12px;border:2px solid var(--line);background:var(--input);color:var(--navy);}
+  textarea{min-height:90px;resize:vertical;line-height:1.6;}
+  input:focus,textarea:focus{outline:none;border-color:var(--blue);}
+  .hint{font-size:13px;color:var(--gray);margin:8px 0;}
+  .hint b{color:var(--blue-dark);}
+  .btns{display:flex;gap:8px;margin-top:14px;}
+  .btn{flex:1;border:none;border-radius:14px;padding:13px;font-size:16px;font-weight:900;cursor:pointer;font-family:inherit;background:var(--blue);color:#fff;}
+  .btn.sub{background:var(--chip);color:var(--blue-dark);}
+  .result{margin-top:14px;border-radius:14px;padding:12px 14px;font-size:15px;display:none;}
+  .result.ok{display:block;background:#e6f8f0;color:#0e7a52;}
+  .result.ng{display:block;background:#fdecee;color:#b3263a;}
+  @media (prefers-color-scheme: dark){ .result.ok{background:#12372b;color:#7fe0b8;} .result.ng{background:#3d1c22;color:#ff9aa7;} }
+  .result .en{font-size:17px;font-weight:800;color:var(--navy);margin-top:4px;}
+  .spk{border:none;background:none;font-size:18px;cursor:pointer;vertical-align:middle;}
+  .line{margin-bottom:14px;}
+  .line label{display:block;font-size:14px;font-weight:800;margin-bottom:4px;}
+  .starter{font-size:17px;font-weight:800;color:var(--blue-dark);}
+  .para{margin-top:14px;padding:14px;border-radius:14px;background:var(--chip);font-size:17px;line-height:1.8;display:none;}
+  .check{font-size:14px;margin-top:8px;line-height:1.9;}
+  .prompt{font-size:18px;font-weight:900;}
+  .prompt small{display:block;font-size:13px;font-weight:700;color:var(--gray);}
+  .part{margin-top:14px;}
+  .part h3{font-size:15px;font-weight:900;margin-bottom:2px;}
+  .part p{font-size:12px;color:var(--gray);margin-bottom:6px;}
+  .wc{position:sticky;bottom:10px;margin-top:14px;text-align:center;font-weight:900;font-size:15px;background:var(--card);border:2px solid var(--line);border-radius:999px;padding:8px;}
+  .wc.good{border-color:var(--green);color:var(--green);}
+  details{margin-top:14px;} summary{cursor:pointer;font-weight:800;color:var(--blue-dark);}
+  details .model{margin-top:8px;padding:12px;border-radius:12px;background:var(--chip);font-size:16px;line-height:1.8;}
+  .tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:4px;}
+  .tabs button{flex:none;border:1px solid var(--line);background:var(--card);color:var(--navy);border-radius:999px;padding:6px 12px;font-size:13px;font-weight:800;font-family:inherit;cursor:pointer;}
+  .tabs button.on{background:var(--blue);color:#fff;border-color:var(--blue);}
+  .done{text-align:center;padding:30px 10px;}
+  .done .big{font-size:48px;}
+  .done h2{font-size:22px;font-weight:900;margin:6px 0;}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" id="back">‹ もどる</a>
+  <div class="htitle" id="htitle"><ruby>英作文<rt>えいさくぶん</rt></ruby>ステップ</div>
+  <div class="hspace"></div>
+</header>
+<div class="wrap" id="app"></div>
+
+<script>
+// ===== もんだい =====
+const STEPS = [
+  { key:'narabe', t:'ならべかえ', m:'ことばを ただしい じゅんに ならべる', qs:[
+    ['わたしは 13さいです。','I am thirteen years old.'],
+    ['わたしは かぞくと 日本に すんでいます。','I live in Japan with my family.'],
+    ['わたしの すきな スポーツは サッカーです。','My favorite sport is soccer.'],
+    ['わたしは マレーシアで 勉強したいです。','I want to study in Malaysia.'],
+    ['わたしは ともだちと ゲームを するのが すきです。','I like playing games with my friends.'],
+    ['わたしの 父は やさしい 人です。','My father is a kind person.'],
+    ['わたしは あたらしい ともだちを たくさん つくりたいです。','I want to make many new friends.'],
+    ['この前の 夏、わたしは 海に 行きました。','Last summer, I went to the sea.'],
+    ['英語は むずかしいけれど たのしいです。','English is difficult but fun.'],
+    ['わたしは 毎日 1時間 英語を 勉強します。','I study English for one hour every day.'],
+  ]},
+  { key:'tsunagu', t:'2つの 文を つなげる', m:'and / but / because / so を えらぶ', qs:[
+    ['I want to go to Malaysia ___ I want to learn English.','because','わたしは マレーシアに 行きたい。英語を 学びたい から。'],
+    ['English is difficult, ___ it is fun.','but','英語は むずかしい。でも たのしい。'],
+    ['I was tired, ___ I went to bed early.','so','つかれていた。だから 早く ねた。'],
+    ['I have a dog ___ a cat.','and','犬と ねこを かっています。'],
+    ['I like math, ___ I don\'t like science.','but','数学は すき。でも 理科は すきじゃない。'],
+    ['I study hard ___ I want to be a doctor.','because','いっしょうけんめい 勉強する。医者に なりたい から。'],
+    ['It was raining, ___ we stayed home.','so','雨だった。だから 家に いた。'],
+    ['My sister is kind ___ funny.','and','姉は やさしくて おもしろい。'],
+  ]},
+  { key:'ichibun', t:'1文を 書こう', m:'日本語を 見て 英語で 書く', qs:[
+    ['わたしの 名前は こうきです。',['My name is Koki.'],'name / is'],
+    ['わたしは サッカーが すきです。',['I like soccer.'],'like'],
+    ['わたしは 毎日 英語を 勉強します。',['I study English every day.'],'study / every day'],
+    ['わたしの 学校は 大きいです。',['My school is big.'],'school / big'],
+    ['わたしは 本を 読むのが すきです。',['I like reading books.','I like to read books.','I like reading.','I like to read.'],'like / reading'],
+    ['わたしは あたらしい ともだちを つくりたいです。',['I want to make new friends.'],'want to / make'],
+    ['日曜日に わたしは 公園へ 行きました。',['On Sunday, I went to the park.','On Sunday I went to the park.','I went to the park on Sunday.'],'went（go の むかし）'],
+    ['わたしの 夢は 医者に なることです。',['My dream is to be a doctor.','My dream is to become a doctor.'],'dream / to be'],
+  ]},
+  { key:'sanbun', t:'3文で 書こう', m:'書きだしに つづけて 自分のことを 書く', qs:[
+    { topic:'すきなこと', title:'My Favorite Thing', lines:[
+      ['I like','（なにが すき？）','soccer'],
+      ['I','（いつ、なにを する？）','play it every weekend'],
+      ['I like it because','（どうして すき？）','it is exciting'] ]},
+    { topic:'かぞく', title:'My Family', lines:[
+      ['There are','（なん人 家族？）','four people in my family'],
+      ['My mother is','（どんな 人？）','kind and funny'],
+      ['I like my family because','（どうして？）','they always help me'] ]},
+    { topic:'ゆめ', title:'My Dream', lines:[
+      ['I want to be','（なにに なりたい？）','a doctor'],
+      ['I want to','（そこで なにを したい？）','help sick people'],
+      ['So I will','（そのために なにを する？）','study hard every day'] ]},
+    { topic:'マレーシア', title:'Studying in Malaysia', lines:[
+      ['I want to study in Malaysia because','（どうして？）','I want to speak English well'],
+      ['At my new school, I want to','（なにを したい？）','make friends from many countries'],
+      ['I am','（いまの 気もち）','excited to start my new life'] ]},
+    { topic:'おもいで', title:'My Best Memory', lines:[
+      ['Last','（いつ？）','summer, I went to Okinawa with my family'],
+      ['We','（なにを した？）','swam in the beautiful sea'],
+      ['It was','（どうだった？）','the best day of my life'] ]},
+  ]},
+  { key:'honban', t:'ほんばん作文', m:'はじめ・なか・おわり で 80語', qs:[
+    { prompt:'Introduce yourself.', ja:'じこしょうかい', model:'My name is Koki, and I am thirteen years old. I live in Japan with my family. There are four people in my family. I like playing soccer and video games. I play soccer with my friends every weekend because it is exciting and good for my health. I am also studying English every day. It is difficult, but I enjoy it. I want to study in Malaysia and make friends from many countries. I am excited to start my new life.'},
+    { prompt:'Describe your favorite hobby.', ja:'すきな しゅみ', model:'My favorite hobby is playing soccer. I started playing soccer when I was seven years old. Now I play it with my friends every weekend at the park near my house. I like soccer because it is exciting and I can work as a team. When my team wins, I feel very happy. When we lose, I learn how to do better next time. Soccer also makes me strong and healthy. In the future, I want to join a soccer team at my new school.'},
+    { prompt:'Why do you want to study at an international school?', ja:'どうして インターナショナルスクール？', model:'I want to study at an international school for two reasons. First, I want to speak English well. English is used all over the world, so it will help me in the future. Second, I want to make friends from many different countries. I think I can learn about new cultures and new ways of thinking. At first, it may be difficult, but I will try my best. I believe studying at an international school will help me grow as a person.'},
+    { prompt:'Write about a day you will never forget.', ja:'わすれられない 日', model:'I will never forget the day I went to Okinawa with my family last summer. The sky was blue and the sea was beautiful. In the morning, we swam in the sea and saw many colorful fish. In the afternoon, we ate delicious Okinawan food. My father and I also played beach soccer. At night, we looked at the stars together. I was tired, but I was very happy. That day was special because my whole family laughed a lot together.'},
+    { prompt:'What do you want to be in the future? Why?', ja:'しょうらいの ゆめ', model:'In the future, I want to be a doctor. When I was ten years old, my grandmother was sick in the hospital. The doctors were very kind to her, and they helped her get better. I was so thankful to them. Since then, I have wanted to help sick people like they did. To be a doctor, I need to study hard, especially science and English. It will not be easy, but I will never give up. I want to make many people healthy and happy.'},
+  ]},
+];
+
+// ===== きろく（この たんまつに だけ のこる）=====
+const KEY = 'kouki_eisakubun_v1';
+let S = {};
+try{ S = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; }catch(e){ S = {}; }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function doneSet(k){ S[k] = S[k] || {done:[]}; return S[k]; }
+function markDone(k, i){ const d = doneSet(k); if(!d.done.includes(i)){ d.done.push(i); save(); } }
+
+// ===== 音読 =====
+let enVoice = null;
+function pickVoice(){ try{ const vs = speechSynthesis.getVoices(); enVoice = vs.find(v=>/en[-_]US/i.test(v.lang)&&/Samantha/i.test(v.name)) || vs.find(v=>/en[-_]US/i.test(v.lang)) || null; }catch(e){} }
+try{ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }catch(e){}
+const _keep = [];
+function speak(t){ try{ speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang='en-US'; if(enVoice) u.voice=enVoice; u.rate=.9; _keep.push(u); u.onend=()=>_keep.splice(_keep.indexOf(u),1); speechSynthesis.speak(u);}catch(e){} }
+
+const app = document.getElementById('app');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const norm = s => s.toLowerCase().replace(/[’']/g,"'").replace(/[.,!?]/g,'').replace(/\s+/g,' ').trim();
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+const wordCount = s => (s.trim().match(/[A-Za-z0-9'’-]+/g) || []).length;
+
+// ===== ホーム（かいだん）=====
+function home(){
+  document.getElementById('back').href = 'index.html';
+  document.getElementById('back').onclick = null;
+  let h = `<div class="hero"><h1>かんたんな ところから 1だんずつ</h1><p>ステップ1から じゅんばんに すすもう</p></div><div class="stairs">`;
+  STEPS.forEach((s, i) => {
+    const n = (S[s.key]?.done || []).length, tot = s.qs.length;
+    h += `<div class="step" data-i="${i}"><div class="num">ステップ<b>${i+1}</b></div>
+      <div class="body"><div class="t">${s.t}${n>=tot?' ⭐':''}</div><div class="m">${s.m}</div>
+      <div class="bar"><i style="width:${Math.round(n/tot*100)}%"></i></div></div><div class="chev">›</div></div>`;
+  });
+  app.innerHTML = h + '</div>';
+  app.querySelectorAll('.step').forEach(el => el.onclick = () => openStep(+el.dataset.i, 0));
+  window.scrollTo(0,0);
+}
+
+function toHomeLink(){
+  const b = document.getElementById('back');
+  b.href = '#'; b.onclick = e => { e.preventDefault(); try{speechSynthesis.cancel();}catch(_){} home(); };
+}
+
+function openStep(si, qi){
+  toHomeLink();
+  const s = STEPS[si];
+  if(qi >= s.qs.length){
+    app.innerHTML = `<div class="done"><div class="big">🎉</div><h2>ステップ${si+1} クリア！</h2>
+      <p>${si+1 < STEPS.length ? 'つぎの ステップに すすもう' : 'ぜんぶ おわり！ よく がんばったね'}</p>
+      <div class="btns">${si+1 < STEPS.length ? `<button class="btn" id="nx">ステップ${si+2}へ</button>` : ''}<button class="btn sub" id="hm">かいだんに もどる</button></div></div>`;
+    const nx = document.getElementById('nx'); if(nx) nx.onclick = () => openStep(si+1, 0);
+    document.getElementById('hm').onclick = home;
+    return;
+  }
+  const head = `<div class="qcount">ステップ${si+1}・${s.t}　${qi+1} / ${s.qs.length}</div>`;
+  const next = () => openStep(si, qi+1);
+  ({narabe, tsunagu, ichibun, sanbun, honban})[s.key](s, si, qi, head, next);
+  window.scrollTo(0,0);
+}
+
+// ステップ1：ならべかえ
+function narabe(s, si, qi, head, next){
+  const [ja, en] = s.qs[qi];
+  const words = en.replace(/[.]$/,'').split(' ');
+  const pool = shuffle(words.map((w,i)=>({w,i})));
+  let picked = [];
+  app.innerHTML = head + `<div class="panel"><div class="ja">${ja}</div>
+    <div class="howto">ことばを タップして ならべよう（まちがえたら 上の ことばを タップで もどせる）</div>
+    <div class="slot" id="slot"></div><div class="pool" id="pool"></div>
+    <div class="btns"><button class="btn" id="ck">こたえあわせ</button></div><div class="result" id="rs"></div></div>`;
+  const slot = document.getElementById('slot'), pl = document.getElementById('pool');
+  function draw(){
+    slot.innerHTML = picked.map((p,k)=>`<button class="w" data-k="${k}">${esc(p.w)}</button>`).join('');
+    pl.innerHTML = pool.map((p,k)=>`<button class="w ${picked.includes(p)?'used':''}" data-k="${k}">${esc(p.w)}</button>`).join('');
+    slot.querySelectorAll('.w').forEach(b => b.onclick = () => { picked.splice(+b.dataset.k,1); draw(); });
+    pl.querySelectorAll('.w').forEach(b => b.onclick = () => { const p = pool[+b.dataset.k]; if(!picked.includes(p)){ picked.push(p); draw(); } });
+  }
+  draw();
+  document.getElementById('ck').onclick = () => {
+    const rs = document.getElementById('rs');
+    const ans = picked.map(p=>p.w).join(' ');
+    if(norm(ans) === norm(en)){
+      markDone(s.key, qi);
+      rs.className = 'result ok';
+      rs.innerHTML = `せいかい！ <div class="en">${esc(en)} <button class="spk" id="sp">🔊</button></div>`;
+      document.getElementById('ck').textContent = 'つぎへ'; document.getElementById('ck').onclick = next;
+    }else{
+      rs.className = 'result ng';
+      rs.innerHTML = picked.length < words.length ? 'まだ ぜんぶ ならべてないよ' : 'おしい！ もういちど ならべかえてみよう';
+    }
+    const sp = document.getElementById('sp'); if(sp) sp.onclick = () => speak(en);
+  };
+}
+
+// ステップ2：つなぐことば
+function tsunagu(s, si, qi, head, next){
+  const [sent, ans, ja] = s.qs[qi];
+  app.innerHTML = head + `<div class="panel"><div class="howto">___ に 入る ことばを えらぼう</div>
+    <div class="sent">${esc(sent).replace('___','<span class="blank" id="bl">?</span>')}</div>
+    <div class="choices" id="ch">${['and','but','because','so'].map(c=>`<button class="w" data-c="${c}">${c}</button>`).join('')}</div>
+    <div class="result" id="rs"></div><div class="btns" id="nb" style="display:none"><button class="btn" id="nx">つぎへ</button></div></div>`;
+  const full = sent.replace('___', ans);
+  document.querySelectorAll('#ch .w').forEach(b => b.onclick = () => {
+    const rs = document.getElementById('rs');
+    document.getElementById('bl').textContent = b.dataset.c;
+    if(b.dataset.c === ans){
+      markDone(s.key, qi);
+      rs.className = 'result ok';
+      rs.innerHTML = `せいかい！ <div class="en">${esc(full)} <button class="spk" id="sp">🔊</button></div><div>${ja}</div>`;
+      document.getElementById('sp').onclick = () => speak(full);
+      document.getElementById('nb').style.display = 'flex';
+      document.getElementById('nx').onclick = next;
+    }else{
+      rs.className = 'result ng';
+      rs.innerHTML = `ちがうよ。もういちど かんがえてみよう<br><small>and＝そして　but＝でも　because＝〜だから（りゆう）　so＝だから（けっか）</small>`;
+    }
+  });
+}
+
+// ステップ3：1文を書く
+function ichibun(s, si, qi, head, next){
+  const [ja, answers, hint] = s.qs[qi];
+  app.innerHTML = head + `<div class="panel"><div class="ja">${ja}</div>
+    <input type="text" id="in" autocomplete="off" autocapitalize="sentences" spellcheck="false" placeholder="英語で 書いてね">
+    <div class="hint">ヒント：<b>${esc(hint)}</b>　／　さいごに ピリオド（.）を わすれずに</div>
+    <div class="btns"><button class="btn" id="ck">こたえあわせ</button></div><div class="result" id="rs"></div></div>`;
+  const inp = document.getElementById('in'), ck = document.getElementById('ck');
+  inp.focus();
+  inp.onkeydown = e => { if(e.key === 'Enter' && !e.isComposing) ck.click(); };
+  ck.onclick = () => {
+    const v = inp.value.trim(), rs = document.getElementById('rs');
+    if(!v){ rs.className='result ng'; rs.textContent='まず 書いてみよう'; return; }
+    const ok = answers.some(a => norm(a) === norm(v));
+    const notes = [];
+    if(ok && !/^[A-Z]/.test(v)) notes.push('文の はじめは 大文字に しよう');
+    if(ok && !/[.!?]$/.test(v)) notes.push('さいごに ピリオド（.）を つけよう');
+    if(ok){
+      markDone(s.key, qi);
+      rs.className = 'result ok';
+      rs.innerHTML = `せいかい！${notes.length?'<br>ひとこと：'+notes.join('／'):''}<div class="en">${esc(answers[0])} <button class="spk" id="sp">🔊</button></div>`;
+      ck.textContent = 'つぎへ'; ck.onclick = next;
+    }else{
+      rs.className = 'result ng';
+      rs.innerHTML = `おしい！ こたえの れい：<div class="en">${esc(answers[0])} <button class="spk" id="sp">🔊</button></div><small>見ないで もういちど 書いてみよう</small>`;
+      inp.value = ''; inp.focus();
+    }
+    document.getElementById('sp').onclick = () => speak(answers[0]);
+  };
+}
+
+// ステップ4：3文で書く
+function sanbun(s, si, qi, head, next){
+  const q = s.qs[qi];
+  const saved = (S.sanbunText || {})[qi] || [];
+  app.innerHTML = head + `<div class="panel"><div class="prompt">${esc(q.title)}<small>テーマ：${q.topic}</small></div>
+    <div class="howto" style="margin-top:8px">書きだしの つづきを 自分のことで 書こう</div>
+    ${q.lines.map((l,k)=>`<div class="line"><label><span class="starter">${esc(l[0])}</span> … <span style="font-weight:600;color:var(--gray)">${l[1]}</span></label>
+      <input type="text" data-k="${k}" autocomplete="off" spellcheck="false" placeholder="れい：${esc(l[2])}" value="${esc(saved[k]||'')}"></div>`).join('')}
+    <div class="btns"><button class="btn" id="ck">できた！</button></div>
+    <div class="para" id="pa"></div><div class="check" id="chk"></div></div>`;
+  const ins = [...app.querySelectorAll('input[data-k]')];
+  ins.forEach(i => i.oninput = () => { S.sanbunText = S.sanbunText || {}; S.sanbunText[qi] = ins.map(x=>x.value); save(); });
+  document.getElementById('ck').onclick = () => {
+    const parts = ins.map(i => i.value.trim());
+    if(parts.some(p => !p)){ const c = document.getElementById('chk'); c.innerHTML = '<span style="color:var(--red)">3つ ぜんぶ 書いてみよう</span>'; return; }
+    const sents = q.lines.map((l,k) => { let t = l[0] + ' ' + parts[k].replace(/^\s*,?\s*/, ''); t = t.replace(/\s+,/g, ','); if(!/[.!?]$/.test(t)) t += '.'; return t; });
+    const text = sents.join(' ');
+    const pa = document.getElementById('pa'); pa.style.display = 'block';
+    pa.innerHTML = `${esc(text)} <button class="spk" id="sp">🔊</button>`;
+    document.getElementById('sp').onclick = () => speak(text);
+    const wc = wordCount(text);
+    document.getElementById('chk').innerHTML = `✅ 3つの 文が できた！（${wc}語）<br>👀 もういちど 読んで、つづりを たしかめよう`;
+    markDone(s.key, qi);
+    const ck = document.getElementById('ck'); ck.textContent = 'つぎへ'; ck.onclick = next;
+  };
+}
+
+// ステップ5：ほんばん作文
+function honban(s, si, qi, head, next){
+  const q = s.qs[qi];
+  const saved = (S.honbanText || {})[qi] || ['','',''];
+  const GOAL = 80;
+  const tabs = s.qs.map((x,k)=>`<button class="${k===qi?'on':''}" data-k="${k}">${k+1}. ${x.ja}</button>`).join('');
+  app.innerHTML = `<div class="tabs">${tabs}</div><div class="panel">
+    <div class="prompt">${esc(q.prompt)}<small>${q.ja}（${GOAL}語 いじょう）</small></div>
+    <div class="part"><h3>① はじめ（1〜2文）</h3><p>なにに ついて 書くか を 言う</p><textarea data-k="0" spellcheck="false">${esc(saved[0])}</textarea></div>
+    <div class="part"><h3>② なか（3〜5文）</h3><p>りゆう や れい を 書く。because / for example / first, second を つかおう</p><textarea data-k="1" spellcheck="false" style="min-height:140px">${esc(saved[1])}</textarea></div>
+    <div class="part"><h3>③ おわり（1〜2文）</h3><p>まとめ・気もち・これから</p><textarea data-k="2" spellcheck="false">${esc(saved[2])}</textarea></div>
+    <div class="wc" id="wc"></div>
+    <details><summary>おてほんを 見る（書きおわってから）</summary><div class="model">${esc(q.model)} <button class="spk" id="sp">🔊</button></div></details>
+    <div class="btns"><button class="btn" id="nx">${qi+1<s.qs.length?'つぎの おだいへ':'おわる'}</button></div></div>`;
+  const tas = [...app.querySelectorAll('textarea')];
+  const upd = () => {
+    const n = wordCount(tas.map(t=>t.value).join(' '));
+    const wc = document.getElementById('wc');
+    wc.textContent = n >= GOAL ? `🎉 ${n}語 — ${GOAL}語 たっせい！` : `いま ${n}語（あと ${GOAL-n}語）`;
+    wc.className = 'wc' + (n >= GOAL ? ' good' : '');
+    if(n >= GOAL) markDone(s.key, qi);
+  };
+  tas.forEach(t => t.oninput = () => { S.honbanText = S.honbanText || {}; S.honbanText[qi] = tas.map(x=>x.value); save(); upd(); });
+  upd();
+  document.getElementById('sp').onclick = () => speak(q.model);
+  app.querySelectorAll('.tabs button').forEach(b => b.onclick = () => openStep(si, +b.dataset.k));
+  document.getElementById('nx').onclick = next;
+}
+
+home();
+</script>
+</body>
+</html>

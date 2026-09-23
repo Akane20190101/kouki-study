@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#4d8bff">
+<title>単語を覚えよう！</title>
+<style>
+  :root{
+    --blue:#4d8bff;--blue-dark:#2f6ae0;--cream:#f4f9ff;--navy:#233047;
+    --gray:#6b7488;--card:#ffffff;--line:#dbe7f7;--red:#e0455a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    font-family:"Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;
+    background:var(--cream);color:var(--navy);line-height:1.5;
+    min-height:100vh;min-height:100dvh;padding-bottom:env(safe-area-inset-bottom);
+  }
+  ruby{ruby-align:center;} rt{font-size:.5em;font-weight:600;color:var(--gray);user-select:none;}
+
+  header{
+    position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:6px;
+    padding:calc(12px + env(safe-area-inset-top)) 14px 12px;
+    background:var(--blue);color:#fff;box-shadow:0 2px 10px rgba(77,139,255,.25);
+  }
+  .back{
+    display:flex;align-items:center;justify-content:center;width:34px;height:34px;
+    border-radius:10px;background:rgba(255,255,255,.2);color:#fff;text-decoration:none;
+    font-size:20px;font-weight:900;flex:none;
+  }
+  .htitle{font-size:16px;font-weight:900;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .home-btn{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:1px 7px;border-radius:10px;background:rgba(255,255,255,.2);
+    text-decoration:none;color:#fff;flex:none;
+  }
+  .home-btn .hb-ico{font-size:17px;line-height:1;}
+  .home-btn .hb-txt{font-size:8px;font-weight:800;line-height:1.15;margin-top:1px;white-space:nowrap;}
+  .home-btn:active{transform:scale(.9);}
+
+  .wrap{max-width:640px;margin:0 auto;padding:16px 16px 40px;}
+  .intro{font-size:13px;color:var(--gray);font-weight:700;text-align:center;margin:4px 4px 8px;line-height:1.8;}
+
+  .glabel{
+    display:flex;align-items:center;gap:8px;
+    font-size:14px;font-weight:800;color:var(--blue-dark);margin:22px 4px 12px;
+  }
+  .glabel::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  /* 幅に あわせて 列数が 自動で ふえる（PCでは 約10列・スマホでは 3〜4列）*/
+  .grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(80px, 1fr));gap:7px;}
+  .wc{
+    position:relative;cursor:pointer;
+    background:var(--card);border:2px solid var(--line);border-radius:12px;
+    padding:9px 5px 8px;text-align:center;
+    box-shadow:0 2px 6px rgba(35,48,71,.05);
+    transition:transform .1s, border-color .15s, background .15s;
+  }
+  .wc:active{transform:scale(.95);}
+  .wc .chk{
+    display:none;position:absolute;top:4px;right:5px;
+    width:18px;height:18px;border-radius:50%;background:#7ed957;color:#fff;
+    font-size:12px;font-weight:900;line-height:1;
+    align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.15);
+  }
+  .wc.checked{border-color:#7ed957;background:#f2ffe6;box-shadow:0 2px 10px rgba(126,217,87,.3);}
+  .wc.checked .chk{display:flex;}
+
+  .coin-bar{
+    background:linear-gradient(90deg,#fff6d6,#fff0f6);
+    border:2px solid #ffd76a;border-radius:16px;padding:10px 14px 12px;
+    margin:2px 0 10px;text-align:center;
+  }
+  .coin-info{font-size:15px;font-weight:900;color:#8a6d1a;}
+  .coin-info b{color:#e0952f;font-size:20px;}
+  .candy-ico{vertical-align:-5px;}
+  .buy-candy .candy-ico{vertical-align:-4px;}
+  .coin-progress{height:8px;border-radius:999px;background:#ffe6a8;overflow:hidden;margin:8px auto 0;max-width:260px;}
+  .coin-progress > i{display:block;height:100%;width:0;background:#ffb43a;border-radius:999px;transition:width .3s ease;}
+  .buy-candy{
+    background:#e6e9f0;color:#9aa5b6;border:none;border-radius:999px;
+    font-size:11px;font-weight:800;padding:5px 10px;cursor:not-allowed;flex:none;
+  }
+  .buy-candy.ready{background:#ff6fae;color:#fff;cursor:pointer;box-shadow:0 3px 12px rgba(255,111,174,.4);}
+  .buy-candy.ready:active{transform:scale(.97);}
+
+  /* コンパクトな 上部バー（左：訳の切替 ／ 右：コイン小表示）*/
+  .topbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px 8px;margin:2px 2px 10px;}
+  .coin-mini{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:900;color:#8a6d1a;white-space:nowrap;}
+  .coin-mini b{color:#e0952f;font-size:15px;}
+  .ja-toggle-wrap{text-align:center;margin:2px 0 14px;}
+  .ja-toggle{
+    background:#eef3fb;border:2px solid var(--line);color:var(--navy);
+    border-radius:999px;font-size:12px;font-weight:800;padding:6px 12px;cursor:pointer;
+  }
+  .ja-toggle.on{background:#f5a623;border-color:#f5a623;color:#fff;}
+  .ja-toggle.on rt{color:rgba(255,255,255,.85);}
+  .ja-toggle:active{transform:scale(.97);}
+  #book.hide-ja .ja{display:none;}
+  .wc .emoji{font-size:28px;line-height:1.1;}
+  .wc .en{font-size:14px;font-weight:900;margin-top:3px;line-height:1.15;white-space:nowrap;}
+  .wc .en rt{font-size:.5em;}
+  .wc .ja{font-size:9px;color:var(--red);font-weight:700;margin-top:2px;line-height:1.2;}
+
+  .btns{display:flex;flex-direction:column;gap:10px;margin-top:30px;}
+  .btn{
+    display:block;padding:16px;border-radius:16px;font-size:17px;font-weight:900;
+    text-decoration:none;text-align:center;border:none;color:inherit;
+  }
+  .btn.primary{background:var(--blue);color:#fff;box-shadow:0 4px 12px rgba(77,139,255,.3);}
+  .btn.ghost{background:#fff;color:var(--navy);border:2px solid var(--line);}
+  .btn:active{transform:scale(.99);}
+  .ennote{font-size:11px;color:var(--red);font-weight:700;text-align:center;margin-top:-4px;}
+
+  @media (prefers-color-scheme: dark){
+    :root{--cream:#141a24;--navy:#eef3fb;--gray:#9aa5b6;--card:#1c2531;--line:#2c3849;--blue-dark:#8ab4ff;--red:#ff9aa6;}
+    .btn.ghost{background:#1c2531;}
+    .wc.checked{background:#1e3320;border-color:#5cb800;}
+    .coin-bar{background:linear-gradient(90deg,#2a2617,#2a1a24);border-color:#8a6d1a;}
+    .coin-info{color:#f0d17a;} .coin-info b{color:#ffcf5c;}
+    .coin-progress{background:#3a3117;}
+  }
+  /* ===== パソコン（大きい画面）は 画面を ひろく使う ===== */
+  @media (min-width: 760px){
+    .wrap{max-width:1000px;}
+    .htitle{font-size:18px;}
+    .grid{gap:9px;}
+    .wc .emoji{font-size:32px;}
+    .wc .en{font-size:14px;}
+    .wc .ja{font-size:10px;}
+    .btns{max-width:520px;margin-left:auto;margin-right:auto;}
+    .intro{font-size:15px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="back" href="index.html">‹</a>
+  <div class="htitle">🔤 <ruby>単語<rt>たんご</rt></ruby>を<ruby>覚<rt>おぼ</rt></ruby>えよう！</div>
+  <a class="home-btn" href="index.html">
+    <span class="hb-ico">🏠</span>
+    <span class="hb-txt">ホームにもどる</span>
+  </a>
+</header>
+
+<div class="wrap">
+  <div class="topbar">
+    <button class="ja-toggle" id="jaToggle"><ruby>日本語訳<rt>にほんごやく</rt></ruby>を <ruby>隠<rt>かく</rt></ruby>す 🙈</button>
+    <div class="coin-mini">
+      <span class="cm-coin"><svg class="coin-ico" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><defs><radialGradient id="goldG" cx="38%" cy="32%" r="75%"><stop offset="0%" stop-color="#fff2b0"/><stop offset="55%" stop-color="#ffce3a"/><stop offset="100%" stop-color="#e69507"/></radialGradient></defs><circle cx="12" cy="12" r="10.5" fill="url(#goldG)" stroke="#d98c06" stroke-width="1.3"/><circle cx="12" cy="12" r="7.3" fill="none" stroke="#ffe9a3" stroke-width="1.2" opacity=".8"/><path d="M12 7l1.5 3.1 3.4.5-2.45 2.4.58 3.4L12 18.3l-3.03 1.5.58-3.4L7.1 10.6l3.4-.5z" fill="#eda60a"/></svg><b id="coinCount">0</b></span>
+      <span>🍬<b id="candyCount">0</b></span>
+      <button class="buy-candy" id="buyCandy" title="コットンキャンディを かう（100コイン）" disabled>🍬キャンディ<ruby>買<rt>か</rt></ruby>う</button>
+    </div>
+  </div>
+
+  <div id="book"></div>
+  <!-- 単語帳 -->
+</div>
+
+<script>
+// 練習問題で つかった 単語（えもじ＋よみ＋いみ）
+// 1日 ＝ その日の 練習問題(renshu.html)に でてくる ことばの 単語（えもじ＋よみ＋いみ）。
+// renshu.html の 1〜3日目と そろえてある。
+const DAY1 = [
+  { label:"😰 きもち・ふあん", words:[
+    {emoji:"😰", en:"anxious", yomi:"アングシャス", ja:"ふあんな"},
+    {emoji:"😬", en:"nervous", yomi:"ナーバス", ja:"きんちょうした"},
+    {emoji:"😟", en:"uneasy", yomi:"アンイージー", ja:"おちつかない"},
+    {emoji:"😨", en:"apprehensive", yomi:"アプリヘンシブ", ja:"（よくない よかんで）ふあんな"},
+    {emoji:"😤", en:"irritated", yomi:"イリテイテッド", ja:"いらいらした"},
+    {emoji:"😡", en:"furious", yomi:"フューリアス", ja:"げきどした"},
+    {emoji:"😱", en:"terrified", yomi:"テリファイド", ja:"とても おびえた"},
+    {emoji:"😌", en:"calm", yomi:"カーム", ja:"おちついた"},
+  ]},
+  { label:"🐘 大きさ", words:[
+    {emoji:"🐘", en:"enormous", yomi:"イノーマス", ja:"きょだいな"},
+    {emoji:"🌌", en:"immense", yomi:"イメンス", ja:"ばくだいな"},
+    {emoji:"🦖", en:"gigantic", yomi:"ジャイガンティック", ja:"とても おおきい"},
+    {emoji:"🏜️", en:"vast", yomi:"ヴァスト", ja:"こうだいな・ひろい"},
+    {emoji:"🐜", en:"tiny", yomi:"タイニー", ja:"ちいさい"},
+    {emoji:"🚪", en:"narrow", yomi:"ナロー", ja:"せまい"},
+  ]},
+  { label:"📉 へる・よわまる", words:[
+    {emoji:"📉", en:"diminish", yomi:"ディミニッシュ", ja:"へる"},
+    {emoji:"🪫", en:"dwindle", yomi:"ドウィンドル", ja:"だんだん すくなくなる"},
+    {emoji:"🌊", en:"subside", yomi:"サブサイド", ja:"おさまる"},
+    {emoji:"🌘", en:"wane", yomi:"ウェイン", ja:"おとろえる"},
+    {emoji:"💥", en:"collapse", yomi:"コラプス", ja:"きゅうに くずれる"},
+    {emoji:"🌫️", en:"fade", yomi:"フェイド", ja:"うすれて きえる"},
+  ]},
+  { label:"🔬 どうぐ・しらべる", words:[
+    {emoji:"🧭", en:"compass", yomi:"コンパス", ja:"ほういじしん"},
+    {emoji:"➡️", en:"direction", yomi:"ディレクション", ja:"ほうこう"},
+    {emoji:"🔬", en:"microscope", yomi:"マイクロスコープ", ja:"けんびきょう"},
+    {emoji:"🔍", en:"detail", yomi:"ディテール", ja:"さいぶ・こまかい ところ"},
+    {emoji:"📏", en:"size", yomi:"サイズ", ja:"おおきさ"},
+    {emoji:"⚖️", en:"weight", yomi:"ウェイト", ja:"おもさ"},
+  ]},
+  { label:"🗿 つくる人・さくひん", words:[
+    {emoji:"🗿", en:"sculptor", yomi:"スカルプター", ja:"ちょうこくか"},
+    {emoji:"🗽", en:"statue", yomi:"スタチュー", ja:"ぞう（ちょうこく）"},
+    {emoji:"✍️", en:"poet", yomi:"ポエット", ja:"しじん"},
+    {emoji:"📜", en:"poem", yomi:"ポエム", ja:"し"},
+    {emoji:"📖", en:"book", yomi:"ブック", ja:"本"},
+    {emoji:"✉️", en:"letter", yomi:"レター", ja:"てがみ"},
+  ]},
+];
+
+// ===== 2日目の 単語（2日目の 練習問題に でてくる語）=====
+const DAY2 = [
+  { label:"🦁 ゆうかん", words:[
+    {emoji:"🦁", en:"brave", yomi:"ブレイブ", ja:"ゆうかんな"},
+    {emoji:"💪", en:"bold", yomi:"ボールド", ja:"だいたんな"},
+    {emoji:"🛡️", en:"courageous", yomi:"カレイジャス", ja:"ゆうきの ある"},
+    {emoji:"⚔️", en:"valiant", yomi:"ヴァリアント", ja:"ゆうかんな"},
+    {emoji:"🐰", en:"timid", yomi:"ティミッド", ja:"おくびょうな"},
+    {emoji:"💢", en:"reckless", yomi:"レックレス", ja:"むちゃな・むぼうな"},
+  ]},
+  { label:"👏 ほめる", words:[
+    {emoji:"👏", en:"applaud", yomi:"アプロード", ja:"はくしゅして ほめる"},
+    {emoji:"🌟", en:"commend", yomi:"コメンド", ja:"ほめる"},
+    {emoji:"🏆", en:"laud", yomi:"ロード", ja:"たたえる"},
+    {emoji:"🙌", en:"extol", yomi:"イクストール", ja:"おおいに ほめる"},
+    {emoji:"👎", en:"rebuke", yomi:"リビューク", ja:"しかる・せめる"},
+    {emoji:"😝", en:"mock", yomi:"モック", ja:"ばかにする"},
+  ]},
+  { label:"😊 したしみやすい", words:[
+    {emoji:"🤝", en:"cordial", yomi:"コーディアル", ja:"こころの こもった"},
+    {emoji:"😊", en:"amiable", yomi:"エイミアブル", ja:"あいその よい"},
+    {emoji:"☺️", en:"genial", yomi:"ジーニアル", ja:"おだやかで やさしい"},
+    {emoji:"🗣️", en:"affable", yomi:"アファブル", ja:"きさくな"},
+    {emoji:"😠", en:"hostile", yomi:"ホスタイル", ja:"てきいの ある"},
+    {emoji:"🙄", en:"aloof", yomi:"アルーフ", ja:"よそよそしい"},
+  ]},
+  { label:"🐺 どうぶつの むれ", words:[
+    {emoji:"🦁", en:"pride", yomi:"プライド", ja:"（ライオンの）むれ"},
+    {emoji:"🐺", en:"pack", yomi:"パック", ja:"（オオカミの）むれ"},
+    {emoji:"🐄", en:"herd", yomi:"ハード", ja:"（うしなどの）むれ"},
+    {emoji:"🐑", en:"flock", yomi:"フロック", ja:"（とり・ひつじの）むれ"},
+    {emoji:"🐟", en:"school", yomi:"スクール", ja:"（さかなの）むれ"},
+    {emoji:"🐝", en:"swarm", yomi:"スウォーム", ja:"（むしの）むれ"},
+  ]},
+  { label:"🌡️ はかる どうぐ", words:[
+    {emoji:"🌡️", en:"thermometer", yomi:"サーモメーター", ja:"おんどけい"},
+    {emoji:"♨️", en:"temperature", yomi:"テンパラチャー", ja:"おんど"},
+    {emoji:"📊", en:"barometer", yomi:"バロメーター", ja:"きあつけい"},
+    {emoji:"🎈", en:"pressure", yomi:"プレッシャー", ja:"あつりょく・きあつ"},
+  ]},
+  { label:"🩹 なおす・けが", words:[
+    {emoji:"🦷", en:"cavity", yomi:"キャビティ", ja:"むしば・あな"},
+    {emoji:"🔧", en:"filling", yomi:"フィリング", ja:"つめもの"},
+    {emoji:"🦴", en:"fracture", yomi:"フラクチャー", ja:"こっせつ"},
+    {emoji:"🩼", en:"cast", yomi:"キャスト", ja:"ギプス"},
+    {emoji:"🩹", en:"bandage", yomi:"バンデージ", ja:"ほうたい"},
+    {emoji:"💊", en:"pill", yomi:"ピル", ja:"くすり"},
+  ]},
+];
+
+// ===== 3日目の 単語（3日目の 練習問題に でてくる語）=====
+const DAY3 = [
+  { label:"⏳ みじかい・つかのま", words:[
+    {emoji:"💨", en:"fleeting", yomi:"フリーティング", ja:"つかのまの"},
+    {emoji:"🍃", en:"transient", yomi:"トランジェント", ja:"いちじてきな"},
+    {emoji:"⏱️", en:"momentary", yomi:"モーメンタリー", ja:"いっしゅんの"},
+    {emoji:"🌸", en:"ephemeral", yomi:"イフェメラル", ja:"はかない・つかのまの"},
+    {emoji:"♾️", en:"eternal", yomi:"イターナル", ja:"えいえんの"},
+    {emoji:"🗿", en:"permanent", yomi:"パーマネント", ja:"えいきゅうの"},
+  ]},
+  { label:"🌾 たくさん・すくない", words:[
+    {emoji:"🌾", en:"copious", yomi:"コピアス", ja:"たくさんの"},
+    {emoji:"🍚", en:"ample", yomi:"アンプル", ja:"じゅうぶんな"},
+    {emoji:"🧺", en:"plentiful", yomi:"プレンティフル", ja:"ゆたかな"},
+    {emoji:"💰", en:"abundant", yomi:"アバンダント", ja:"ありあまる ほど おおい"},
+    {emoji:"🏜️", en:"scarce", yomi:"スケアス", ja:"とぼしい"},
+    {emoji:"🥄", en:"meager", yomi:"ミーガー", ja:"わずかな"},
+  ]},
+  { label:"📝 きちんと・ていねい", words:[
+    {emoji:"📝", en:"meticulous", yomi:"メティキュラス", ja:"きちょうめんな"},
+    {emoji:"🔍", en:"scrupulous", yomi:"スクルーピュラス", ja:"きちんとした・良心的な"},
+    {emoji:"📋", en:"methodical", yomi:"メソディカル", ja:"順序だてて きちんと"},
+    {emoji:"🐜", en:"painstaking", yomi:"ペインステイキング", ja:"ねんいりな・こんきよく"},
+    {emoji:"🤪", en:"careless", yomi:"ケアレス", ja:"ふちゅういな"},
+    {emoji:"💨", en:"hasty", yomi:"ヘイスティ", ja:"あわてた"},
+  ]},
+  { label:"🚫 〜が うしなわれる", words:[
+    {emoji:"😴", en:"insomnia", yomi:"インソムニア", ja:"ふみんしょう"},
+    {emoji:"🛌", en:"sleep", yomi:"スリープ", ja:"すいみん"},
+    {emoji:"🧠", en:"amnesia", yomi:"アムニージア", ja:"きおくそうしつ"},
+    {emoji:"💭", en:"memory", yomi:"メモリー", ja:"きおく"},
+    {emoji:"🌙", en:"dream", yomi:"ドリーム", ja:"ゆめ"},
+    {emoji:"😌", en:"rest", yomi:"レスト", ja:"きゅうそく"},
+  ]},
+  { label:"📏 大きい↔小さい（つよさ）", words:[
+    {emoji:"⬆️", en:"large", yomi:"ラージ", ja:"おおきい"},
+    {emoji:"🐘", en:"enormous", yomi:"イノーマス", ja:"きょだいな"},
+    {emoji:"⬇️", en:"small", yomi:"スモール", ja:"ちいさい"},
+    {emoji:"🔬", en:"minuscule", yomi:"ミニスキュール", ja:"ごく ちいさい"},
+  ]},
+  { label:"✍️ つくる人・さくひん", words:[
+    {emoji:"✍️", en:"author", yomi:"オーサー", ja:"さっか"},
+    {emoji:"📖", en:"novel", yomi:"ノベル", ja:"しょうせつ"},
+    {emoji:"🎼", en:"composer", yomi:"コンポーザー", ja:"さっきょくか"},
+    {emoji:"🎹", en:"symphony", yomi:"シンフォニー", ja:"こうきょうきょく"},
+    {emoji:"🎨", en:"painting", yomi:"ペインティング", ja:"え"},
+    {emoji:"🏛️", en:"building", yomi:"ビルディング", ja:"たてもの"},
+  ]},
+];
+
+// ===== 4日目の 単語（4日目の 練習問題に でてくる語）=====
+const DAY4 = [
+  { label:"🗣️ 率直（そっちょく）", words:[
+    {emoji:"🗣️", en:"candid", yomi:"キャンディッド", ja:"率直な"},
+    {emoji:"💬", en:"frank", yomi:"フランク", ja:"ありのままの"},
+    {emoji:"📢", en:"forthright", yomi:"フォースライト", ja:"あけすけな"},
+    {emoji:"🙊", en:"outspoken", yomi:"アウトスポークン", ja:"はっきり言う"},
+    {emoji:"🌫️", en:"evasive", yomi:"イヴェイシブ", ja:"はぐらかす"},
+    {emoji:"🤐", en:"secretive", yomi:"シークレティブ", ja:"かくしだてする"},
+  ]},
+  { label:"🧠 しんちょう・分別", words:[
+    {emoji:"🧠", en:"prudent", yomi:"プルーデント", ja:"しんちょうな・かしこい"},
+    {emoji:"⚠️", en:"cautious", yomi:"コーシャス", ja:"用心ぶかい"},
+    {emoji:"⚖️", en:"judicious", yomi:"ジュディシャス", ja:"分別の ある"},
+    {emoji:"🔭", en:"circumspect", yomi:"サーカムスペクト", ja:"よく考えて 慎重な"},
+    {emoji:"🏎️", en:"reckless", yomi:"レックレス", ja:"むちゃな"},
+    {emoji:"⚡", en:"impulsive", yomi:"インパルシブ", ja:"衝動的な"},
+  ]},
+  { label:"💪 意志が かたい", words:[
+    {emoji:"🪨", en:"resolute", yomi:"レゾルート", ja:"かたく決意した"},
+    {emoji:"🧗", en:"steadfast", yomi:"ステッドファスト", ja:"ゆるがない"},
+    {emoji:"🎯", en:"determined", yomi:"ディターミンド", ja:"決意の かたい"},
+    {emoji:"🐕", en:"tenacious", yomi:"テネイシャス", ja:"ねばりづよい"},
+    {emoji:"😰", en:"hesitant", yomi:"ヘジタント", ja:"ためらう"},
+    {emoji:"🍃", en:"wavering", yomi:"ウェイバリング", ja:"ぐらぐら まよう"},
+  ]},
+  { label:"🤝 一人前に なる", words:[
+    {emoji:"🐣", en:"novice", yomi:"ノヴィス", ja:"しょしんしゃ"},
+    {emoji:"🎓", en:"expert", yomi:"エキスパート", ja:"たつじん"},
+    {emoji:"🔨", en:"apprentice", yomi:"アプレンティス", ja:"みならい"},
+    {emoji:"👑", en:"master", yomi:"マスター", ja:"名人・親方"},
+    {emoji:"🆕", en:"rookie", yomi:"ルーキー", ja:"しんじん"},
+  ]},
+  { label:"🏜️ ひどく 足りない", words:[
+    {emoji:"🏜️", en:"drought", yomi:"ドラウト", ja:"かんばつ（水ぶそく）"},
+    {emoji:"💧", en:"water", yomi:"ウォーター", ja:"水"},
+    {emoji:"🍽️", en:"famine", yomi:"ファミン", ja:"ききん"},
+    {emoji:"🍞", en:"food", yomi:"フード", ja:"食べもの"},
+    {emoji:"🌾", en:"harvest", yomi:"ハーヴェスト", ja:"しゅうかく"},
+  ]},
+  { label:"🤔 はんたいの ことば", words:[
+    {emoji:"🙏", en:"faith", yomi:"フェイス", ja:"しんらい・しんこう"},
+    {emoji:"❓", en:"doubt", yomi:"ダウト", ja:"うたがい"},
+  ]},
+];
+
+// ===== 5日目の 単語（5日目の 練習問題に でてくる語）=====
+const DAY5 = [
+  { label:"⚡ はやい↔おそい", words:[
+    {emoji:"⚡", en:"swift", yomi:"スウィフト", ja:"すばやい"},
+    {emoji:"🏃", en:"rapid", yomi:"ラピッド", ja:"きゅうそくな"},
+    {emoji:"💨", en:"speedy", yomi:"スピーディー", ja:"すばやい"},
+    {emoji:"🚴", en:"brisk", yomi:"ブリスク", ja:"きびきびと はやい"},
+    {emoji:"🐌", en:"sluggish", yomi:"スラッギッシュ", ja:"のろい"},
+    {emoji:"🚶", en:"leisurely", yomi:"レジャリー", ja:"ゆったりした"},
+  ]},
+  { label:"🌧️ くらい・さびしい", words:[
+    {emoji:"😞", en:"gloomy", yomi:"グルーミー", ja:"うすぐらい・ゆううつな"},
+    {emoji:"🌧️", en:"dismal", yomi:"ディズマル", ja:"わびしい"},
+    {emoji:"🏚️", en:"bleak", yomi:"ブリーク", ja:"さむざむしい"},
+    {emoji:"🥀", en:"dreary", yomi:"ドリアリー", ja:"もの さびしい"},
+    {emoji:"😊", en:"cheerful", yomi:"チアフル", ja:"ほがらかな"},
+    {emoji:"☀️", en:"sunny", yomi:"サニー", ja:"はれた・あかるい"},
+  ]},
+  { label:"🥚 こわれやすい↔じょうぶ", words:[
+    {emoji:"🥚", en:"fragile", yomi:"フラジャイル", ja:"こわれやすい"},
+    {emoji:"🍂", en:"flimsy", yomi:"フリムジー", ja:"もろい・やわな"},
+    {emoji:"🌸", en:"delicate", yomi:"デリケート", ja:"こわれやすい・せんさいな"},
+    {emoji:"🍬", en:"brittle", yomi:"ブリトル", ja:"かたくて こわれやすい"},
+    {emoji:"🧱", en:"sturdy", yomi:"スターディ", ja:"じょうぶな"},
+    {emoji:"💪", en:"tough", yomi:"タフ", ja:"じょうぶな"},
+  ]},
+  { label:"🔊 つよ すぎる ○○", words:[
+    {emoji:"🔊", en:"cacophony", yomi:"カコフォニー", ja:"けたたましい 騒音"},
+    {emoji:"🎵", en:"sound", yomi:"サウンド", ja:"音"},
+    {emoji:"🔆", en:"glare", yomi:"グレア", ja:"まぶしい 強い光"},
+    {emoji:"💡", en:"light", yomi:"ライト", ja:"光"},
+    {emoji:"🌑", en:"darkness", yomi:"ダークネス", ja:"くらやみ"},
+    {emoji:"🌚", en:"shadow", yomi:"シャドウ", ja:"かげ"},
+  ]},
+  { label:"🏝️ あつまり→その1つ", words:[
+    {emoji:"🏝️", en:"archipelago", yomi:"アーキペラゴ", ja:"れっとう（島の あつまり）"},
+    {emoji:"🏖️", en:"island", yomi:"アイランド", ja:"島"},
+    {emoji:"✨", en:"constellation", yomi:"コンステレイション", ja:"星座"},
+    {emoji:"⭐", en:"star", yomi:"スター", ja:"星"},
+    {emoji:"🌌", en:"galaxy", yomi:"ギャラクシー", ja:"ぎんが"},
+    {emoji:"🪐", en:"planet", yomi:"プラネット", ja:"わくせい"},
+  ]},
+  { label:"🌬️ つよさが あがる", words:[
+    {emoji:"💧", en:"trickle", yomi:"トリクル", ja:"ちょろちょろ ながれる"},
+    {emoji:"⛲", en:"gush", yomi:"ガッシュ", ja:"どっと ふきだす"},
+    {emoji:"🍃", en:"breeze", yomi:"ブリーズ", ja:"そよかぜ"},
+    {emoji:"🌪️", en:"gale", yomi:"ゲイル", ja:"きょうふう（つよい かぜ）"},
+  ]},
+];
+
+// ===== 6日目の 単語（6日目の 練習問題に でてくる語）=====
+const DAY6 = [
+  { label:"😪 だるい・元気がない", words:[
+    {emoji:"😪", en:"lethargic", yomi:"レサージック", ja:"気だるい"},
+    {emoji:"😑", en:"listless", yomi:"リストレス", ja:"やる気の ない"},
+    {emoji:"🐌", en:"sluggish", yomi:"スラッギッシュ", ja:"のろい・にぶい"},
+    {emoji:"🥱", en:"languid", yomi:"ラングィッド", ja:"けだるい・元気のない"},
+    {emoji:"⚡", en:"energetic", yomi:"エナジェティック", ja:"げんきいっぱいの"},
+    {emoji:"💪", en:"vigorous", yomi:"ヴィゴラス", ja:"力づよい"},
+  ]},
+  { label:"😠 けんかごし", words:[
+    {emoji:"🥊", en:"belligerent", yomi:"ベリジェレント", ja:"けんかごしの"},
+    {emoji:"😠", en:"hostile", yomi:"ホスタイル", ja:"てきいの ある"},
+    {emoji:"⚔️", en:"combative", yomi:"コンバティブ", ja:"たたかいたがる"},
+    {emoji:"👿", en:"antagonistic", yomi:"アンタゴニスティック", ja:"てきたいてきな"},
+    {emoji:"🤝", en:"friendly", yomi:"フレンドリー", ja:"ゆうこうてきな"},
+    {emoji:"🕊️", en:"peaceful", yomi:"ピースフル", ja:"へいわな"},
+  ]},
+  { label:"💰 むだづかいしない", words:[
+    {emoji:"🪙", en:"frugal", yomi:"フルーガル", ja:"つましい"},
+    {emoji:"🐷", en:"thrifty", yomi:"スリフティ", ja:"やりくり上手な"},
+    {emoji:"📉", en:"economical", yomi:"エコノミカル", ja:"むだの ない"},
+    {emoji:"🤏", en:"sparing", yomi:"スペアリング", ja:"つかいすぎない"},
+    {emoji:"🗑️", en:"wasteful", yomi:"ウェイストフル", ja:"むだづかいの"},
+    {emoji:"💸", en:"lavish", yomi:"ラヴィッシュ", ja:"おしみなく つかう"},
+  ]},
+  { label:"🎼 まとめる 人と あつまり", words:[
+    {emoji:"🎼", en:"conductor", yomi:"コンダクター", ja:"しきしゃ"},
+    {emoji:"🎻", en:"orchestra", yomi:"オーケストラ", ja:"がくだん"},
+    {emoji:"🧢", en:"captain", yomi:"キャプテン", ja:"しゅしょう"},
+    {emoji:"👥", en:"team", yomi:"チーム", ja:"チーム"},
+    {emoji:"🏃", en:"player", yomi:"プレイヤー", ja:"せんしゅ"},
+  ]},
+  { label:"🌸 一部→ぜんたい", words:[
+    {emoji:"🌸", en:"petal", yomi:"ペタル", ja:"花びら"},
+    {emoji:"🌼", en:"flower", yomi:"フラワー", ja:"花"},
+    {emoji:"🚲", en:"spoke", yomi:"スポーク", ja:"車輪の棒"},
+    {emoji:"☸️", en:"wheel", yomi:"ホイール", ja:"車輪"},
+    {emoji:"🛞", en:"tire", yomi:"タイヤ", ja:"タイヤ"},
+  ]},
+  { label:"🥵 とても つよい かたち", words:[
+    {emoji:"🍽️", en:"famished", yomi:"ファミッシュト", ja:"はらぺこの"},
+    {emoji:"😋", en:"hungry", yomi:"ハングリー", ja:"おなかがすいた"},
+    {emoji:"🥵", en:"exhausted", yomi:"イグゾースティッド", ja:"へとへとの"},
+    {emoji:"😓", en:"tired", yomi:"タイアド", ja:"つかれた"},
+    {emoji:"😴", en:"sleepy", yomi:"スリーピー", ja:"ねむい"},
+  ]},
+];
+
+// ===== 7日目の 単語（7日目の 練習問題に でてくる語）=====
+const DAY7 = [
+  { label:"😨 不吉・こわい", words:[
+    {emoji:"🌩️", en:"ominous", yomi:"オミナス", ja:"不吉な"},
+    {emoji:"😰", en:"foreboding", yomi:"フォアボーディング", ja:"いやな よかんの"},
+    {emoji:"🦹", en:"sinister", yomi:"シニスター", ja:"わるだくみの ありそうな"},
+    {emoji:"😱", en:"menacing", yomi:"メナシング", ja:"おどすような・こわい"},
+    {emoji:"😌", en:"reassuring", yomi:"リアシュアリング", ja:"あんしんさせる"},
+    {emoji:"🕊️", en:"harmless", yomi:"ハームレス", ja:"がいの ない"},
+  ]},
+  { label:"🐜 ささいな↔大事な", words:[
+    {emoji:"🐜", en:"trivial", yomi:"トリビアル", ja:"ささいな"},
+    {emoji:"🪶", en:"trifling", yomi:"トライフリング", ja:"とるにたりない"},
+    {emoji:"🤏", en:"petty", yomi:"ペティ", ja:"ちっぽけな"},
+    {emoji:"💤", en:"insignificant", yomi:"インシグニフィカント", ja:"とるにたりない"},
+    {emoji:"❗", en:"crucial", yomi:"クルーシャル", ja:"きわめて 大事な"},
+    {emoji:"⭐", en:"vital", yomi:"ヴァイタル", ja:"ひじょうに 大事な"},
+  ]},
+  { label:"🗿 がんこ↔すなお", words:[
+    {emoji:"🗿", en:"obstinate", yomi:"オブスティネット", ja:"がんこな"},
+    {emoji:"🐴", en:"stubborn", yomi:"スタボーン", ja:"いじっぱりな"},
+    {emoji:"🐐", en:"headstrong", yomi:"ヘッドストロング", ja:"がんこで きかない"},
+    {emoji:"🧱", en:"inflexible", yomi:"インフレキシブル", ja:"ゆずらない"},
+    {emoji:"🤸", en:"flexible", yomi:"フレキシブル", ja:"ゆうずうの きく"},
+    {emoji:"🙆", en:"compliant", yomi:"コンプライアント", ja:"すなおに したがう"},
+  ]},
+  { label:"🛡️ ふせぐ・消す", words:[
+    {emoji:"💉", en:"vaccine", yomi:"ヴァクシーン", ja:"ワクチン"},
+    {emoji:"🦠", en:"disease", yomi:"ディジーズ", ja:"びょうき"},
+    {emoji:"🧪", en:"antidote", yomi:"アンティドート", ja:"毒けし"},
+    {emoji:"☠️", en:"poison", yomi:"ポイズン", ja:"どく"},
+    {emoji:"💊", en:"medicine", yomi:"メディスン", ja:"くすり"},
+  ]},
+  { label:"📖 一部→さくひん", words:[
+    {emoji:"📄", en:"chapter", yomi:"チャプター", ja:"（本の）章"},
+    {emoji:"📖", en:"book", yomi:"ブック", ja:"本"},
+    {emoji:"🎶", en:"movement", yomi:"ムーブメント", ja:"（曲の）楽章"},
+    {emoji:"🎼", en:"symphony", yomi:"シンフォニー", ja:"こうきょうきょく"},
+  ]},
+  { label:"🏜️ ○○が ない", words:[
+    {emoji:"🏜️", en:"arid", yomi:"アリッド", ja:"かんそうした"},
+    {emoji:"🌧️", en:"rainfall", yomi:"レインフォール", ja:"こう水（雨）"},
+    {emoji:"🪨", en:"barren", yomi:"バレン", ja:"不毛の"},
+    {emoji:"🌱", en:"vegetation", yomi:"ベジテイション", ja:"しょくぶつ・みどり"},
+  ]},
+];
+
+// ===== 8日目の 単語 =====
+const DAY8 = [
+  { label:"🗣️ 話すのが うまい", words:[
+    {emoji:"🗣️", en:"eloquent", yomi:"エロクエント", ja:"雄弁な"},
+    {emoji:"🎙️", en:"articulate", yomi:"アーティキュレット", ja:"はっきり 話せる"},
+    {emoji:"💬", en:"fluent", yomi:"フルーエント", ja:"すらすら 話せる"},
+    {emoji:"🎭", en:"expressive", yomi:"イクスプレッシブ", ja:"表現ゆたかな"},
+    {emoji:"😶", en:"tongue-tied", yomi:"タングタイド", ja:"うまく 話せない"},
+  ]},
+  { label:"💡 わかりやすい", words:[
+    {emoji:"💡", en:"lucid", yomi:"ルーシッド", ja:"明快な"},
+    {emoji:"🧩", en:"coherent", yomi:"コヒーレント", ja:"すじの とおった"},
+    {emoji:"🔎", en:"clear", yomi:"クリア", ja:"はっきりした"},
+    {emoji:"📗", en:"intelligible", yomi:"インテリジブル", ja:"りかいできる"},
+    {emoji:"🌀", en:"confusing", yomi:"コンフューズィング", ja:"ややこしい"},
+    {emoji:"🌫️", en:"vague", yomi:"ヴェイグ", ja:"あいまいな"},
+  ]},
+  { label:"🐯 あらあらしい", words:[
+    {emoji:"🐯", en:"savage", yomi:"サベッジ", ja:"どうもうな"},
+    {emoji:"🔥", en:"fierce", yomi:"フィアス", ja:"はげしい"},
+    {emoji:"👊", en:"brutal", yomi:"ブルータル", ja:"ざんこくな"},
+    {emoji:"🦂", en:"vicious", yomi:"ヴィシャス", ja:"どうもうで あらあらしい"},
+    {emoji:"🐑", en:"gentle", yomi:"ジェントル", ja:"やさしい"},
+    {emoji:"🐢", en:"tame", yomi:"テイム", ja:"おとなしい"},
+  ]},
+  { label:"🐻 子→おとな", words:[
+    {emoji:"🐻", en:"cub", yomi:"カブ", ja:"（くまの）子"},
+    {emoji:"🧸", en:"bear", yomi:"ベア", ja:"くま"},
+    {emoji:"🐴", en:"foal", yomi:"フォール", ja:"（うまの）子"},
+    {emoji:"🐎", en:"horse", yomi:"ホース", ja:"うま"},
+    {emoji:"🐄", en:"calf", yomi:"カーフ", ja:"子うし"},
+  ]},
+  { label:"🏛️ しまう 場所→もの", words:[
+    {emoji:"🏛️", en:"library", yomi:"ライブラリー", ja:"としょかん"},
+    {emoji:"📚", en:"books", yomi:"ブックス", ja:"本"},
+    {emoji:"🏰", en:"arsenal", yomi:"アーセナル", ja:"ぶきこ"},
+    {emoji:"⚔️", en:"weapons", yomi:"ウェポンズ", ja:"ぶき"},
+    {emoji:"💂", en:"soldiers", yomi:"ソルジャーズ", ja:"へいし"},
+  ]},
+  { label:"🔥 つよさが あがる", words:[
+    {emoji:"🤫", en:"whisper", yomi:"ウィスパー", ja:"ささやき"},
+    {emoji:"📢", en:"shout", yomi:"シャウト", ja:"さけび"},
+    {emoji:"🕯️", en:"flicker", yomi:"フリッカー", ja:"チラチラする 火"},
+    {emoji:"🔥", en:"blaze", yomi:"ブレイズ", ja:"もえさかる ほのお"},
+    {emoji:"✨", en:"spark", yomi:"スパーク", ja:"火花"},
+  ]},
+];
+
+// ===== 9日目の 単語 =====
+const DAY9 = [
+  { label:"👀 用心ぶかい", words:[
+    {emoji:"👀", en:"wary", yomi:"ウェアリー", ja:"用心ぶかい"},
+    {emoji:"🛡️", en:"vigilant", yomi:"ヴィジラント", ja:"けいかいした"},
+    {emoji:"⏰", en:"alert", yomi:"アラート", ja:"ゆだんの ない"},
+    {emoji:"🔦", en:"watchful", yomi:"ウォッチフル", ja:"よく 見はっている"},
+    {emoji:"🙈", en:"careless", yomi:"ケアレス", ja:"ふちゅういな"},
+    {emoji:"😴", en:"oblivious", yomi:"オブリヴィアス", ja:"気づかない"},
+  ]},
+  { label:"🦣 きょだい", words:[
+    {emoji:"🗼", en:"colossal", yomi:"コロッサル", ja:"きょだいな"},
+    {emoji:"🌌", en:"immense", yomi:"イメンス", ja:"ばくだいな"},
+    {emoji:"🦣", en:"mammoth", yomi:"マンモス", ja:"ばかでかい"},
+    {emoji:"🐋", en:"gargantuan", yomi:"ガーガンチュアン", ja:"とてつもなく 大きい"},
+    {emoji:"🐜", en:"tiny", yomi:"タイニー", ja:"ちいさい"},
+    {emoji:"🐭", en:"petite", yomi:"プティート", ja:"こがらの"},
+  ]},
+  { label:"✨ かがやく", words:[
+    {emoji:"☀️", en:"radiant", yomi:"レイディアント", ja:"かがやく"},
+    {emoji:"💡", en:"luminous", yomi:"ルミナス", ja:"ひかりを はなつ"},
+    {emoji:"✨", en:"gleaming", yomi:"グリーミング", ja:"ぴかぴか 光る"},
+    {emoji:"💎", en:"brilliant", yomi:"ブリリアント", ja:"まばゆく かがやく"},
+    {emoji:"🌑", en:"dim", yomi:"ディム", ja:"うすぐらい"},
+    {emoji:"🌫️", en:"dull", yomi:"ダル", ja:"くすんだ"},
+  ]},
+  { label:"🔧 その人の 道具", words:[
+    {emoji:"🗿", en:"sculptor", yomi:"スカルプター", ja:"ちょうこくか"},
+    {emoji:"🔨", en:"chisel", yomi:"チゼル", ja:"のみ"},
+    {emoji:"🩺", en:"surgeon", yomi:"サージョン", ja:"げかい"},
+    {emoji:"🔪", en:"scalpel", yomi:"スカルペル", ja:"メス"},
+    {emoji:"🖊️", en:"pen", yomi:"ペン", ja:"ペン"},
+  ]},
+  { label:"💧 小さい1つ→大あつまり", words:[
+    {emoji:"💧", en:"drop", yomi:"ドロップ", ja:"ひとしずく"},
+    {emoji:"🌊", en:"ocean", yomi:"オーシャン", ja:"海"},
+    {emoji:"🌾", en:"grain", yomi:"グレイン", ja:"ひとつぶ"},
+    {emoji:"🏜️", en:"desert", yomi:"デザート", ja:"さばく"},
+    {emoji:"🏖️", en:"sand", yomi:"サンド", ja:"すな"},
+  ]},
+  { label:"🎨 がかの 道具", words:[
+    {emoji:"✍️", en:"author", yomi:"オーサー", ja:"さっか"},
+    {emoji:"🖊️", en:"pen", yomi:"ペン", ja:"ペン"},
+    {emoji:"🎨", en:"painter", yomi:"ペインター", ja:"がか"},
+    {emoji:"🖌️", en:"brush", yomi:"ブラシ", ja:"ふで"},
+    {emoji:"🖼️", en:"canvas", yomi:"キャンバス", ja:"ぬる布"},
+  ]},
+];
+
+const DAY10 = [
+  { label:"📉 すくない", words:[
+    {emoji:"📉", en:"scarce", yomi:"スケアス", ja:"とぼしい"},
+    {emoji:"🌾", en:"sparse", yomi:"スパース", ja:"まばらな"},
+    {emoji:"🍽️", en:"meager", yomi:"ミーガー", ja:"わずかな"},
+    {emoji:"🥄", en:"scant", yomi:"スキャント", ja:"ごくわずかな"},
+    {emoji:"🎁", en:"abundant", yomi:"アバンダント", ja:"ゆたかな（はんたい）"},
+    {emoji:"🍚", en:"plentiful", yomi:"プレンティフル", ja:"たっぷりの（はんたい）"},
+  ]},
+  { label:"👏 ほめる", words:[
+    {emoji:"👏", en:"commend", yomi:"コメンド", ja:"ほめる"},
+    {emoji:"🏆", en:"laud", yomi:"ロード", ja:"たたえる"},
+    {emoji:"🙌", en:"applaud", yomi:"アプロード", ja:"しょうさんする"},
+    {emoji:"🌟", en:"extol", yomi:"イクストール", ja:"おおいに ほめる"},
+    {emoji:"👎", en:"criticize", yomi:"クリティサイズ", ja:"ひはんする（はんたい）"},
+    {emoji:"⚖️", en:"condemn", yomi:"コンデム", ja:"ひなんする（はんたい）"},
+  ]},
+  { label:"🐴 がんこ", words:[
+    {emoji:"🐴", en:"stubborn", yomi:"スタボーン", ja:"がんこな"},
+    {emoji:"🧱", en:"obstinate", yomi:"オブスティネット", ja:"いこじな"},
+    {emoji:"🐗", en:"headstrong", yomi:"ヘッドストロング", ja:"がんこな"},
+    {emoji:"🗿", en:"adamant", yomi:"アダマント", ja:"がんとして ゆずらない"},
+    {emoji:"🤸", en:"flexible", yomi:"フレキシブル", ja:"じゅうなんな（はんたい）"},
+    {emoji:"🙆", en:"obedient", yomi:"オビーディエント", ja:"すなおな（はんたい）"},
+  ]},
+  { label:"💧 しめる→びしょぬれ", words:[
+    {emoji:"💧", en:"damp", yomi:"ダンプ", ja:"しめった"},
+    {emoji:"🫧", en:"moist", yomi:"モイスト", ja:"しっとりした"},
+    {emoji:"🥵", en:"humid", yomi:"ヒューミッド", ja:"むしあつい"},
+    {emoji:"🌊", en:"drenched", yomi:"ドレンチト", ja:"びしょぬれの（いちばん強い）"},
+    {emoji:"🏜️", en:"dry", yomi:"ドライ", ja:"かわいた（はんたい）"},
+  ]},
+  { label:"👀 ちらっと→じっと見る", words:[
+    {emoji:"👀", en:"glance", yomi:"グランス", ja:"ちらっと見る"},
+    {emoji:"🫣", en:"peek", yomi:"ピーク", ja:"のぞき見る"},
+    {emoji:"😳", en:"stare", yomi:"ステア", ja:"じっと見つめる（いちばん強い）"},
+    {emoji:"😉", en:"wink", yomi:"ウィンク", ja:"ウィンクする"},
+    {emoji:"😑", en:"blink", yomi:"ブリンク", ja:"まばたきする"},
+  ]},
+  { label:"🏗️ つくる人と 作品", words:[
+    {emoji:"🏗️", en:"architect", yomi:"アーキテクト", ja:"けんちくか"},
+    {emoji:"🏢", en:"building", yomi:"ビルディング", ja:"たてもの"},
+    {emoji:"🎼", en:"composer", yomi:"コンポーザー", ja:"さっきょくか"},
+    {emoji:"🎶", en:"symphony", yomi:"シンフォニー", ja:"こうきょうきょく"},
+    {emoji:"🎻", en:"orchestra", yomi:"オーケストラ", ja:"かんげんがくだん"},
+  ]},
+];
+
+const DAY11 = [
+  { label:"🩹 やわらげる", words:[
+    {emoji:"🩹", en:"soothe", yomi:"スージュ", ja:"やわらげる"},
+    {emoji:"💊", en:"alleviate", yomi:"アリーヴィエイト", ja:"かるくする"},
+    {emoji:"😌", en:"ease", yomi:"イーズ", ja:"らくにする"},
+    {emoji:"🕊️", en:"mitigate", yomi:"ミティゲイト", ja:"やわらげる"},
+    {emoji:"🔥", en:"aggravate", yomi:"アグラヴェイト", ja:"あっかさせる（はんたい）"},
+    {emoji:"📈", en:"intensify", yomi:"インテンシファイ", ja:"つよめる（はんたい）"},
+  ]},
+  { label:"⚠️ きけん", words:[
+    {emoji:"⚠️", en:"perilous", yomi:"ペリラス", ja:"きけんな"},
+    {emoji:"☢️", en:"hazardous", yomi:"ハザーダス", ja:"きけんな"},
+    {emoji:"🎲", en:"risky", yomi:"リスキー", ja:"あぶない"},
+    {emoji:"🕳️", en:"treacherous", yomi:"トレチャラス", ja:"ゆだんならない"},
+    {emoji:"🛟", en:"safe", yomi:"セイフ", ja:"あんぜんな（はんたい）"},
+    {emoji:"🔒", en:"secure", yomi:"セキュア", ja:"あんしんな（はんたい）"},
+  ]},
+  { label:"✂️ みじかくする", words:[
+    {emoji:"✂️", en:"abbreviate", yomi:"アブリーヴィエイト", ja:"みじかくする"},
+    {emoji:"🗜️", en:"condense", yomi:"コンデンス", ja:"ぎゅっと まとめる"},
+    {emoji:"📏", en:"shorten", yomi:"ショートン", ja:"みじかくする"},
+    {emoji:"📖", en:"abridge", yomi:"アブリッジ", ja:"本などを みじかくする"},
+    {emoji:"➡️", en:"extend", yomi:"エクステンド", ja:"のばす（はんたい）"},
+    {emoji:"🎈", en:"expand", yomi:"エクスパンド", ja:"ひろげる（はんたい）"},
+  ]},
+  { label:"💗 すき→だいすき", words:[
+    {emoji:"👎", en:"dislike", yomi:"ディスライク", ja:"きらう"},
+    {emoji:"🤢", en:"loathe", yomi:"ロウズ", ja:"だいきらいする"},
+    {emoji:"🙂", en:"like", yomi:"ライク", ja:"すき"},
+    {emoji:"😍", en:"adore", yomi:"アドー", ja:"だいすきである（いちばん強い）"},
+  ]},
+  { label:"🏛️ 人と はたらく ばしょ", words:[
+    {emoji:"👨‍🍳", en:"chef", yomi:"シェフ", ja:"りょうりにん"},
+    {emoji:"🍳", en:"kitchen", yomi:"キッチン", ja:"だいどころ"},
+    {emoji:"⚖️", en:"judge", yomi:"ジャッジ", ja:"さいばんかん"},
+    {emoji:"🏛️", en:"courtroom", yomi:"コートルーム", ja:"ほうてい"},
+  ]},
+  { label:"😴 こまり→なおす もの", words:[
+    {emoji:"😩", en:"fatigue", yomi:"ファティーグ", ja:"つかれ"},
+    {emoji:"🛌", en:"rest", yomi:"レスト", ja:"きゅうそく"},
+    {emoji:"🍽️", en:"hunger", yomi:"ハンガー", ja:"くうふく"},
+    {emoji:"🍚", en:"food", yomi:"フード", ja:"たべもの"},
+  ]},
+];
+
+const DAY12 = [
+  { label:"✅ ほんもの", words:[
+    {emoji:"✅", en:"genuine", yomi:"ジェニュイン", ja:"ほんものの"},
+    {emoji:"🎫", en:"authentic", yomi:"オーセンティック", ja:"しんせいの"},
+    {emoji:"💯", en:"real", yomi:"リアル", ja:"ほんとうの"},
+    {emoji:"📜", en:"legitimate", yomi:"レジティメット", ja:"せいとうな・ほんものの"},
+    {emoji:"🎭", en:"fake", yomi:"フェイク", ja:"にせの（はんたい）"},
+    {emoji:"💵", en:"counterfeit", yomi:"カウンターフィット", ja:"ぎぞうの（はんたい）"},
+  ]},
+  { label:"💰 おかねもち", words:[
+    {emoji:"💰", en:"affluent", yomi:"アフルエント", ja:"ゆうふくな"},
+    {emoji:"📈", en:"prosperous", yomi:"プロスペラス", ja:"さかえた"},
+    {emoji:"💎", en:"wealthy", yomi:"ウェルシー", ja:"おかねもちの"},
+    {emoji:"👑", en:"opulent", yomi:"オピュレント", ja:"ごうかで ゆたかな"},
+    {emoji:"🪙", en:"poor", yomi:"プア", ja:"まずしい（はんたい）"},
+    {emoji:"🥀", en:"destitute", yomi:"デスティテュート", ja:"ひんこんの（はんたい）"},
+  ]},
+  { label:"💥 こわす", words:[
+    {emoji:"🏚️", en:"demolish", yomi:"デモリッシュ", ja:"とりこわす"},
+    {emoji:"💥", en:"destroy", yomi:"デストロイ", ja:"はかいする"},
+    {emoji:"🚗", en:"wreck", yomi:"レック", ja:"めちゃめちゃにする"},
+    {emoji:"🌋", en:"devastate", yomi:"デヴァステイト", ja:"かいめつさせる"},
+    {emoji:"🏗️", en:"build", yomi:"ビルド", ja:"たてる（はんたい）"},
+    {emoji:"🔧", en:"restore", yomi:"リストア", ja:"もとにもどす（はんたい）"},
+  ]},
+  { label:"🍽️ すこし→がつがつ", words:[
+    {emoji:"🥤", en:"sip", yomi:"シップ", ja:"すこし のむ"},
+    {emoji:"🧃", en:"gulp", yomi:"ガルプ", ja:"ごくごく のむ"},
+    {emoji:"🐹", en:"nibble", yomi:"ニブル", ja:"すこし かじる"},
+    {emoji:"🍖", en:"devour", yomi:"ディヴァウア", ja:"がつがつ たべる（いちばん強い）"},
+  ]},
+  { label:"🏺 つくる人と 作品", words:[
+    {emoji:"🏺", en:"potter", yomi:"ポッター", ja:"とうげいか"},
+    {emoji:"⚱️", en:"vase", yomi:"ヴェイス", ja:"つぼ"},
+    {emoji:"🧶", en:"weaver", yomi:"ウィーヴァー", ja:"はたおり職人"},
+    {emoji:"🧵", en:"cloth", yomi:"クロス", ja:"ぬの"},
+  ]},
+  { label:"🌳 ささえる もの", words:[
+    {emoji:"🌱", en:"root", yomi:"ルート", ja:"ね"},
+    {emoji:"🌳", en:"tree", yomi:"ツリー", ja:"き"},
+    {emoji:"🧱", en:"foundation", yomi:"ファウンデーション", ja:"どだい"},
+    {emoji:"🏢", en:"building", yomi:"ビルディング", ja:"たてもの"},
+  ]},
+];
+
+const DAY13 = [
+  { label:"👁️ めだつ", words:[
+    {emoji:"👁️", en:"obvious", yomi:"オブヴィアス", ja:"あきらかな"},
+    {emoji:"🔎", en:"evident", yomi:"エヴィデント", ja:"はっきりした"},
+    {emoji:"🪧", en:"apparent", yomi:"アパレント", ja:"みてわかる"},
+    {emoji:"🚨", en:"conspicuous", yomi:"コンスピキュアス", ja:"とても めだつ"},
+    {emoji:"🙈", en:"hidden", yomi:"ヒドゥン", ja:"かくれた（はんたい）"},
+    {emoji:"🌫️", en:"obscure", yomi:"オブスキュア", ja:"わかりにくい（はんたい）"},
+  ]},
+  { label:"🥱 たいくつ", words:[
+    {emoji:"🥱", en:"tedious", yomi:"ティーディアス", ja:"たいくつな"},
+    {emoji:"😐", en:"dull", yomi:"ダル", ja:"つまらない"},
+    {emoji:"🔁", en:"monotonous", yomi:"モノトナス", ja:"たんちょうな"},
+    {emoji:"🗒️", en:"mundane", yomi:"マンデイン", ja:"ありふれて たいくつな"},
+    {emoji:"🎢", en:"exciting", yomi:"エキサイティング", ja:"わくわくする（はんたい）"},
+    {emoji:"🎆", en:"thrilling", yomi:"スリリング", ja:"スリルのある（はんたい）"},
+  ]},
+  { label:"🧐 しんちょう", words:[
+    {emoji:"🧐", en:"cautious", yomi:"コーシャス", ja:"しんちょうな"},
+    {emoji:"🤏", en:"careful", yomi:"ケアフル", ja:"ちゅういぶかい"},
+    {emoji:"🦉", en:"wary", yomi:"ウェアリー", ja:"ようじんぶかい"},
+    {emoji:"🔍", en:"circumspect", yomi:"サーカムスペクト", ja:"よくよく ちゅういする"},
+    {emoji:"🏎️", en:"reckless", yomi:"レックレス", ja:"むぼうな（はんたい）"},
+    {emoji:"💨", en:"rash", yomi:"ラッシュ", ja:"むこうみずな（はんたい）"},
+  ]},
+  { label:"🔥 こさめ→大火", words:[
+    {emoji:"🌦️", en:"drizzle", yomi:"ドリズル", ja:"こさめ"},
+    {emoji:"🌧️", en:"downpour", yomi:"ダウンポア", ja:"どしゃぶり"},
+    {emoji:"🕯️", en:"flicker", yomi:"フリッカー", ja:"ちらちらする炎"},
+    {emoji:"🔥", en:"blaze", yomi:"ブレイズ", ja:"めらめら もえる大火（いちばん強い）"},
+  ]},
+  { label:"🏦 ためる ばしょと もの", words:[
+    {emoji:"🏦", en:"vault", yomi:"ヴォールト", ja:"きんこ室"},
+    {emoji:"🪙", en:"gold", yomi:"ゴールド", ja:"きん"},
+    {emoji:"🛢️", en:"reservoir", yomi:"レザヴォワー", ja:"ちょすいち"},
+    {emoji:"💧", en:"water", yomi:"ウォーター", ja:"みず"},
+  ]},
+  { label:"🪓 人と どうぐ", words:[
+    {emoji:"🪵", en:"lumberjack", yomi:"ランバージャック", ja:"きこり"},
+    {emoji:"🪓", en:"axe", yomi:"アックス", ja:"おの"},
+    {emoji:"🎣", en:"angler", yomi:"アングラー", ja:"つりびと"},
+    {emoji:"🎏", en:"rod", yomi:"ロッド", ja:"つりざお"},
+  ]},
+];
+
+const DAY14 = [
+  { label:"✂️ みじかい・かんけつ", words:[
+    {emoji:"📝", en:"concise", yomi:"コンサイス", ja:"かんけつな"},
+    {emoji:"⏱️", en:"brief", yomi:"ブリーフ", ja:"みじかい"},
+    {emoji:"🎯", en:"succinct", yomi:"サクシンクト", ja:"てみじかな"},
+    {emoji:"✂️", en:"terse", yomi:"タース", ja:"むだのない みじかさ"},
+    {emoji:"🗣️", en:"verbose", yomi:"ヴァーボース", ja:"ことばが おおい（はんたい）"},
+    {emoji:"📜", en:"wordy", yomi:"ワーディー", ja:"くどい（はんたい）"},
+  ]},
+  { label:"🔥 ねっしん", words:[
+    {emoji:"🙋", en:"eager", yomi:"イーガー", ja:"ねっしんな"},
+    {emoji:"🎉", en:"enthusiastic", yomi:"エンスージアスティック", ja:"ねっきょうてきな"},
+    {emoji:"⚡", en:"keen", yomi:"キーン", ja:"のりきの"},
+    {emoji:"🤩", en:"avid", yomi:"アヴィッド", ja:"むちゅうの"},
+    {emoji:"🙅", en:"reluctant", yomi:"リラクタント", ja:"いやいやの（はんたい）"},
+    {emoji:"😑", en:"apathetic", yomi:"アパセティック", ja:"やるきのない（はんたい）"},
+  ]},
+  { label:"🦊 ずるがしこい", words:[
+    {emoji:"🦊", en:"cunning", yomi:"カニング", ja:"ずるがしこい"},
+    {emoji:"🐍", en:"sly", yomi:"スライ", ja:"こうかつな"},
+    {emoji:"🕸️", en:"crafty", yomi:"クラフティー", ja:"わるがしこい"},
+    {emoji:"🎭", en:"devious", yomi:"ディーヴィアス", ja:"よこしまで ずるい"},
+    {emoji:"😇", en:"honest", yomi:"オネスト", ja:"しょうじきな（はんたい）"},
+    {emoji:"🐣", en:"naive", yomi:"ナイーブ", ja:"むじゃきな（はんたい）"},
+  ]},
+  { label:"😆 うれしい→大よろこび", words:[
+    {emoji:"😩", en:"tired", yomi:"タイアード", ja:"つかれた"},
+    {emoji:"🥵", en:"exhausted", yomi:"イグゾースティッド", ja:"へとへとの"},
+    {emoji:"🙂", en:"happy", yomi:"ハッピー", ja:"うれしい"},
+    {emoji:"🤗", en:"ecstatic", yomi:"エクスタティック", ja:"大よろこびの（いちばん強い）"},
+  ]},
+  { label:"🗺️ つくる人と 作品", words:[
+    {emoji:"🗺️", en:"cartographer", yomi:"カートグラファー", ja:"ちずせいさく者"},
+    {emoji:"📍", en:"map", yomi:"マップ", ja:"ちず"},
+    {emoji:"🖋️", en:"biographer", yomi:"バイオグラファー", ja:"でんきさっか"},
+    {emoji:"📗", en:"biography", yomi:"バイオグラフィー", ja:"でんき"},
+  ]},
+  { label:"📄 小さい→大きい あつまり", words:[
+    {emoji:"🔤", en:"word", yomi:"ワード", ja:"たんご"},
+    {emoji:"➖", en:"sentence", yomi:"センテンス", ja:"ぶん"},
+    {emoji:"📄", en:"paragraph", yomi:"パラグラフ", ja:"だんらく"},
+  ]},
+];
+
+const DAY15 = [
+  { label:"🧩 ふくざつ", words:[
+    {emoji:"🧩", en:"complicated", yomi:"コンプリケイテッド", ja:"ふくざつな"},
+    {emoji:"🌀", en:"complex", yomi:"コンプレックス", ja:"いりくんだ"},
+    {emoji:"🕸️", en:"intricate", yomi:"イントリケット", ja:"こみいった"},
+    {emoji:"🌪️", en:"convoluted", yomi:"コンヴォルーテッド", ja:"ひどく こみいった"},
+    {emoji:"⚪", en:"simple", yomi:"シンプル", ja:"かんたんな（はんたい）"},
+    {emoji:"🟦", en:"plain", yomi:"プレイン", ja:"あっさりした（はんたい）"},
+  ]},
+  { label:"✨ きれい・せいけつ", words:[
+    {emoji:"🧼", en:"spotless", yomi:"スポットレス", ja:"よごれ ひとつない"},
+    {emoji:"💠", en:"immaculate", yomi:"イマキュレット", ja:"かんぺきに きれいな"},
+    {emoji:"🚿", en:"clean", yomi:"クリーン", ja:"せいけつな"},
+    {emoji:"❄️", en:"pristine", yomi:"プリスティン", ja:"あらたで まっさら"},
+    {emoji:"🧟", en:"filthy", yomi:"フィルシー", ja:"ひどく きたない（はんたい）"},
+    {emoji:"🕳️", en:"grimy", yomi:"グライミー", ja:"あかじみた（はんたい）"},
+  ]},
+  { label:"🙏 かんしゃ", words:[
+    {emoji:"🙏", en:"grateful", yomi:"グレイトフル", ja:"かんしゃする"},
+    {emoji:"💐", en:"thankful", yomi:"サンクフル", ja:"ありがたく おもう"},
+    {emoji:"👏", en:"appreciative", yomi:"アプリーシアティブ", ja:"ありがたがる"},
+    {emoji:"🤝", en:"indebted", yomi:"インデッテッド", ja:"おんに かんじる"},
+    {emoji:"😤", en:"ungrateful", yomi:"アングレイトフル", ja:"おんしらずの（はんたい）"},
+    {emoji:"😒", en:"resentful", yomi:"リゼントフル", ja:"うらんでいる（はんたい）"},
+  ]},
+  { label:"🐘 大きい→きょだい", words:[
+    {emoji:"🐜", en:"small", yomi:"スモール", ja:"ちいさい"},
+    {emoji:"🔬", en:"minuscule", yomi:"ミニスキュール", ja:"ごくちいさい"},
+    {emoji:"🐘", en:"big", yomi:"ビッグ", ja:"おおきい"},
+    {emoji:"🗻", en:"colossal", yomi:"コロッサル", ja:"きょだいな（いちばん強い）"},
+  ]},
+  { label:"🔧 人と どうぐ", words:[
+    {emoji:"🩺", en:"surgeon", yomi:"サージョン", ja:"げかい"},
+    {emoji:"🔪", en:"scalpel", yomi:"スカルペル", ja:"メス"},
+    {emoji:"👷", en:"carpenter", yomi:"カーペンター", ja:"だいく"},
+    {emoji:"🪚", en:"saw", yomi:"ソー", ja:"のこぎり"},
+  ]},
+  { label:"🐟 いれものと いきもの", words:[
+    {emoji:"🐦", en:"cage", yomi:"ケイジ", ja:"とりかご"},
+    {emoji:"🐤", en:"bird", yomi:"バード", ja:"とり"},
+    {emoji:"🐠", en:"aquarium", yomi:"アクアリウム", ja:"すいそう"},
+    {emoji:"🐟", en:"fish", yomi:"フィッシュ", ja:"さかな"},
+  ]},
+];
+
+const DAY16 = [
+  { label:"😡 おこる", words:[
+    {emoji:"😤", en:"furious", yomi:"フューリアス", ja:"げきどした"},
+    {emoji:"😠", en:"enraged", yomi:"インレイジド", ja:"かんかんに おこった"},
+    {emoji:"🤬", en:"livid", yomi:"リヴィッド", ja:"かっとなった"},
+    {emoji:"😡", en:"irate", yomi:"アイレイト", ja:"はげしく おこった"},
+    {emoji:"😌", en:"calm", yomi:"カーム", ja:"おだやかな（はんたい）"},
+    {emoji:"🧘", en:"serene", yomi:"セリーン", ja:"しずかで おだやかな（はんたい）"},
+  ]},
+  { label:"😢 かなしい", words:[
+    {emoji:"😢", en:"sorrowful", yomi:"ソローフル", ja:"かなしみに みちた"},
+    {emoji:"😭", en:"mournful", yomi:"モーンフル", ja:"いたむような"},
+    {emoji:"🌧️", en:"gloomy", yomi:"グルーミー", ja:"ゆううつな"},
+    {emoji:"🥀", en:"melancholy", yomi:"メランコリー", ja:"もの がなしい"},
+    {emoji:"😄", en:"joyful", yomi:"ジョイフル", ja:"よろこびに みちた（はんたい）"},
+    {emoji:"🎉", en:"merry", yomi:"メリー", ja:"ゆかいな（はんたい）"},
+  ]},
+  { label:"🌟 ゆうめい", words:[
+    {emoji:"🌟", en:"famous", yomi:"フェイマス", ja:"ゆうめいな"},
+    {emoji:"🏅", en:"renowned", yomi:"リナウンド", ja:"なだかい"},
+    {emoji:"🎖️", en:"celebrated", yomi:"セレブレイテッド", ja:"しょうさんされる"},
+    {emoji:"👑", en:"illustrious", yomi:"イラストリアス", ja:"かがやかしい"},
+    {emoji:"🕶️", en:"unknown", yomi:"アンノウン", ja:"むめいの（はんたい）"},
+    {emoji:"🌫️", en:"obscure", yomi:"オブスキュア", ja:"よく しられていない（はんたい）"},
+  ]},
+  { label:"💔 かなしい→むねが はりさける", words:[
+    {emoji:"😒", en:"annoyed", yomi:"アノイド", ja:"いらついた"},
+    {emoji:"🤬", en:"outraged", yomi:"アウトレイジド", ja:"はげどした"},
+    {emoji:"😔", en:"sad", yomi:"サッド", ja:"かなしい"},
+    {emoji:"💔", en:"heartbroken", yomi:"ハートブロークン", ja:"むねが はりさける（いちばん強い）"},
+  ]},
+  { label:"🏟️ 人と しごとの ばしょ", words:[
+    {emoji:"🎭", en:"actor", yomi:"アクター", ja:"はいゆう"},
+    {emoji:"🎬", en:"stage", yomi:"ステージ", ja:"ぶたい"},
+    {emoji:"🔬", en:"scientist", yomi:"サイエンティスト", ja:"かがくしゃ"},
+    {emoji:"🧪", en:"laboratory", yomi:"ラボラトリー", ja:"じっけんしつ"},
+  ]},
+  { label:"⏰ 小さい→大きい たんい", words:[
+    {emoji:"⏱️", en:"second", yomi:"セカンド", ja:"びょう"},
+    {emoji:"⏲️", en:"minute", yomi:"ミニット", ja:"ふん"},
+    {emoji:"🕐", en:"hour", yomi:"アワー", ja:"じかん"},
+  ]},
+];
+
+const DAY17 = [
+  { label:"🤫 しずか", words:[
+    {emoji:"🤫", en:"quiet", yomi:"クワイエット", ja:"しずかな"},
+    {emoji:"🔇", en:"silent", yomi:"サイレント", ja:"むおんの"},
+    {emoji:"🌙", en:"hushed", yomi:"ハッシュト", ja:"しずまりかえった"},
+    {emoji:"🕊️", en:"tranquil", yomi:"トランクィル", ja:"しずかで おだやかな"},
+    {emoji:"📢", en:"loud", yomi:"ラウド", ja:"うるさい（はんたい）"},
+    {emoji:"🔊", en:"boisterous", yomi:"ボイスタラス", ja:"さわがしい（はんたい）"},
+  ]},
+  { label:"💗 しんせつ", words:[
+    {emoji:"💗", en:"kind", yomi:"カインド", ja:"しんせつな"},
+    {emoji:"🤲", en:"considerate", yomi:"コンシダレット", ja:"おもいやりのある"},
+    {emoji:"🫶", en:"compassionate", yomi:"コンパッショネット", ja:"じひぶかい"},
+    {emoji:"😇", en:"benevolent", yomi:"ベネヴォレント", ja:"なさけぶかい"},
+    {emoji:"😈", en:"cruel", yomi:"クルーエル", ja:"ざんこくな（はんたい）"},
+    {emoji:"🥶", en:"ruthless", yomi:"ルースレス", ja:"むじひな（はんたい）"},
+  ]},
+  { label:"💪 じょうぶ", words:[
+    {emoji:"🧱", en:"sturdy", yomi:"スターディー", ja:"がんじょうな"},
+    {emoji:"💪", en:"robust", yomi:"ロバスト", ja:"じょうぶな"},
+    {emoji:"🛡️", en:"durable", yomi:"デュラブル", ja:"ながもちする"},
+    {emoji:"🌱", en:"resilient", yomi:"レジリエント", ja:"へこたれない"},
+    {emoji:"🥚", en:"fragile", yomi:"フラジャイル", ja:"こわれやすい（はんたい）"},
+    {emoji:"🍂", en:"brittle", yomi:"ブリトル", ja:"もろい（はんたい）"},
+  ]},
+  { label:"🔥 あつい→にえたつ", words:[
+    {emoji:"❄️", en:"cold", yomi:"コールド", ja:"つめたい"},
+    {emoji:"🧊", en:"freezing", yomi:"フリージング", ja:"こおるほど さむい"},
+    {emoji:"☀️", en:"hot", yomi:"ホット", ja:"あつい"},
+    {emoji:"🌋", en:"boiling", yomi:"ボイリング", ja:"にえたつほど あつい（いちばん強い）"},
+  ]},
+  { label:"🧵 つくる人と 作品", words:[
+    {emoji:"👨‍🍳", en:"baker", yomi:"ベイカー", ja:"パンやさん"},
+    {emoji:"🍞", en:"bread", yomi:"ブレッド", ja:"パン"},
+    {emoji:"🧵", en:"tailor", yomi:"テイラー", ja:"したてや"},
+    {emoji:"🤵", en:"suit", yomi:"スーツ", ja:"スーツ・ふく"},
+  ]},
+  { label:"🌊 一部と ぜんたい", words:[
+    {emoji:"🌿", en:"branch", yomi:"ブランチ", ja:"えだ"},
+    {emoji:"🌳", en:"tree", yomi:"ツリー", ja:"き"},
+    {emoji:"💦", en:"tributary", yomi:"トリビュタリー", ja:"しりゅう"},
+    {emoji:"🏞️", en:"river", yomi:"リヴァー", ja:"かわ"},
+  ]},
+];
+
+const DAY18 = [
+  { label:"🪙 けち", words:[
+    {emoji:"🪙", en:"stingy", yomi:"スティンジー", ja:"けちな"},
+    {emoji:"💸", en:"miserly", yomi:"マイザリー", ja:"しみったれた"},
+    {emoji:"✊", en:"tightfisted", yomi:"タイトフィステッド", ja:"おかねを ださない"},
+    {emoji:"🔒", en:"parsimonious", yomi:"パーシモニアス", ja:"ひどく けちな"},
+    {emoji:"🎁", en:"generous", yomi:"ジェネラス", ja:"きまえのよい（はんたい）"},
+    {emoji:"💎", en:"lavish", yomi:"ラヴィッシュ", ja:"おしみなく つかう（はんたい）"},
+  ]},
+  { label:"⚡ はやい", words:[
+    {emoji:"⚡", en:"swift", yomi:"スウィフト", ja:"すばやい"},
+    {emoji:"🚄", en:"rapid", yomi:"ラピッド", ja:"きゅうそくな"},
+    {emoji:"🏃", en:"speedy", yomi:"スピーディー", ja:"はやい"},
+    {emoji:"✅", en:"expeditious", yomi:"エクスペディシャス", ja:"てきぱきと すばやい"},
+    {emoji:"🐌", en:"slow", yomi:"スロー", ja:"おそい（はんたい）"},
+    {emoji:"🦥", en:"sluggish", yomi:"スラギッシュ", ja:"のろのろした（はんたい）"},
+  ]},
+  { label:"👻 こわい", words:[
+    {emoji:"😱", en:"scary", yomi:"スケアリー", ja:"こわい"},
+    {emoji:"👻", en:"frightening", yomi:"フライトニング", ja:"おそろしい"},
+    {emoji:"💀", en:"terrifying", yomi:"テリファイング", ja:"ぞっとする"},
+    {emoji:"🌩️", en:"dreadful", yomi:"ドレッドフル", ja:"おそろしい"},
+    {emoji:"🌸", en:"pleasant", yomi:"プレザント", ja:"こころよい（はんたい）"},
+    {emoji:"😊", en:"delightful", yomi:"ディライトフル", ja:"たのしい（はんたい）"},
+  ]},
+  { label:"🌟 よい→さいこう", words:[
+    {emoji:"🙂", en:"pretty", yomi:"プリティー", ja:"きれいな"},
+    {emoji:"💃", en:"gorgeous", yomi:"ゴージャス", ja:"うっとりする美しさ"},
+    {emoji:"👍", en:"good", yomi:"グッド", ja:"よい"},
+    {emoji:"🌟", en:"superb", yomi:"スパーブ", ja:"すばらしい（いちばん強い）"},
+  ]},
+  { label:"🐜 すみかと いきもの", words:[
+    {emoji:"🍯", en:"beehive", yomi:"ビーハイブ", ja:"ミツバチの巣"},
+    {emoji:"🐝", en:"bees", yomi:"ビーズ", ja:"ミツバチ"},
+    {emoji:"⛰️", en:"anthill", yomi:"アントヒル", ja:"アリづか"},
+    {emoji:"🐜", en:"ants", yomi:"アンツ", ja:"アリ"},
+  ]},
+  { label:"📏 どうぐと はたらき", words:[
+    {emoji:"✂️", en:"scissors", yomi:"シザーズ", ja:"はさみ"},
+    {emoji:"🔪", en:"cut", yomi:"カット", ja:"きる"},
+    {emoji:"📏", en:"ruler", yomi:"ルーラー", ja:"じょうぎ"},
+    {emoji:"📐", en:"measure", yomi:"メジャー", ja:"はかる"},
+  ]},
+];
+
+const DAY19 = [
+  { label:"🕊️ へいわ・おだやか", words:[
+    {emoji:"🕊️", en:"peaceful", yomi:"ピースフル", ja:"へいわな"},
+    {emoji:"😌", en:"calm", yomi:"カーム", ja:"おだやかな"},
+    {emoji:"🧘", en:"serene", yomi:"セリーン", ja:"しずかで やすらかな"},
+    {emoji:"🏞️", en:"placid", yomi:"プラシッド", ja:"しずかで おだやかな"},
+    {emoji:"🌊", en:"turbulent", yomi:"タービュレント", ja:"あれくるった（はんたい）"},
+    {emoji:"🌀", en:"chaotic", yomi:"ケイオティック", ja:"こんとんとした（はんたい）"},
+  ]},
+  { label:"🦉 かしこい", words:[
+    {emoji:"💡", en:"clever", yomi:"クレバー", ja:"りこうな"},
+    {emoji:"🧠", en:"smart", yomi:"スマート", ja:"あたまのよい"},
+    {emoji:"🎓", en:"intelligent", yomi:"インテリジェント", ja:"ちてきな"},
+    {emoji:"🦉", en:"astute", yomi:"アステュート", ja:"ぬけめなく かしこい"},
+    {emoji:"🤡", en:"foolish", yomi:"フーリッシュ", ja:"おろかな（はんたい）"},
+    {emoji:"😵", en:"ignorant", yomi:"イグノラント", ja:"むちな（はんたい）"},
+  ]},
+  { label:"🥵 きつい・たいへん", words:[
+    {emoji:"😮‍💨", en:"tiring", yomi:"タイアリング", ja:"つかれる"},
+    {emoji:"🥵", en:"exhausting", yomi:"イグゾースティング", ja:"へとへとにする"},
+    {emoji:"🏋️", en:"demanding", yomi:"ディマンディング", ja:"きつい"},
+    {emoji:"⛰️", en:"strenuous", yomi:"ストレニュアス", ja:"ほねの おれる"},
+    {emoji:"🛋️", en:"easy", yomi:"イージー", ja:"らくな（はんたい）"},
+    {emoji:"🌴", en:"relaxing", yomi:"リラクシング", ja:"くつろげる（はんたい）"},
+  ]},
+  { label:"🔥 小さい→大きい", words:[
+    {emoji:"〰️", en:"tremor", yomi:"トレマー", ja:"かすかな ゆれ"},
+    {emoji:"🌏", en:"earthquake", yomi:"アースクエイク", ja:"大じしん"},
+    {emoji:"✨", en:"spark", yomi:"スパーク", ja:"ひばな"},
+    {emoji:"🔥", en:"inferno", yomi:"インフェルノ", ja:"もえさかる大火（いちばん強い）"},
+  ]},
+  { label:"⛏️ 人と はたらく ばしょ", words:[
+    {emoji:"👨‍🌾", en:"farmer", yomi:"ファーマー", ja:"のうか"},
+    {emoji:"🌾", en:"field", yomi:"フィールド", ja:"はたけ"},
+    {emoji:"⛏️", en:"miner", yomi:"マイナー", ja:"こうふ"},
+    {emoji:"🕳️", en:"mine", yomi:"マイン", ja:"こうざん"},
+  ]},
+  { label:"🎭 一部と ぜんたい", words:[
+    {emoji:"🎵", en:"movement", yomi:"ムーブメント", ja:"がくしょう"},
+    {emoji:"🎼", en:"symphony", yomi:"シンフォニー", ja:"こうきょうきょく"},
+    {emoji:"🎬", en:"act", yomi:"アクト", ja:"まく"},
+    {emoji:"🎭", en:"play", yomi:"プレイ", ja:"えんげき"},
+  ]},
+];
+
+const DAY20 = [
+  { label:"😊 まんぞく", words:[
+    {emoji:"😊", en:"content", yomi:"コンテント", ja:"まんぞくな"},
+    {emoji:"😌", en:"satisfied", yomi:"サティスファイド", ja:"みたされた"},
+    {emoji:"🙂", en:"pleased", yomi:"プリーズド", ja:"よろこんだ"},
+    {emoji:"🥰", en:"gratified", yomi:"グラティファイド", ja:"まんぞくして うれしい"},
+    {emoji:"😞", en:"unhappy", yomi:"アンハッピー", ja:"ふまんな（はんたい）"},
+    {emoji:"😔", en:"disappointed", yomi:"ディサポインテッド", ja:"がっかりした（はんたい）"},
+  ]},
+  { label:"🗣️ そっちょく", words:[
+    {emoji:"🗣️", en:"frank", yomi:"フランク", ja:"そっちょくな"},
+    {emoji:"➡️", en:"direct", yomi:"ダイレクト", ja:"ずばりと いう"},
+    {emoji:"😇", en:"honest", yomi:"オネスト", ja:"しょうじきな"},
+    {emoji:"💬", en:"forthright", yomi:"フォースライト", ja:"かくさず ずばり いう"},
+    {emoji:"🌀", en:"evasive", yomi:"イヴェイシブ", ja:"はぐらかす（はんたい）"},
+    {emoji:"🤥", en:"deceitful", yomi:"ディシートフル", ja:"あざむく（はんたい）"},
+  ]},
+  { label:"🤫 ひそかな", words:[
+    {emoji:"🤐", en:"secret", yomi:"シークレット", ja:"ひみつの"},
+    {emoji:"🐈‍⬛", en:"sneaky", yomi:"スニーキー", ja:"こそこそした"},
+    {emoji:"🙈", en:"hidden", yomi:"ヒドゥン", ja:"かくれた"},
+    {emoji:"🥷", en:"stealthy", yomi:"ステルシー", ja:"きづかれず こっそりの"},
+    {emoji:"📢", en:"open", yomi:"オープン", ja:"おおっぴらな（はんたい）"},
+    {emoji:"👀", en:"visible", yomi:"ヴィジブル", ja:"見える（はんたい）"},
+  ]},
+  { label:"💔 きらい→だいっきらい", words:[
+    {emoji:"🙂", en:"like", yomi:"ライク", ja:"すき"},
+    {emoji:"❤️", en:"love", yomi:"ラブ", ja:"大すき"},
+    {emoji:"👎", en:"dislike", yomi:"ディスライク", ja:"きらい"},
+    {emoji:"🤮", en:"detest", yomi:"ディテスト", ja:"だいっきらいする（いちばん強い）"},
+  ]},
+  { label:"👞 つくる人と 作品", words:[
+    {emoji:"👞", en:"cobbler", yomi:"コブラー", ja:"くつ職人"},
+    {emoji:"👟", en:"shoes", yomi:"シューズ", ja:"くつ"},
+    {emoji:"🔨", en:"blacksmith", yomi:"ブラックスミス", ja:"かじや"},
+    {emoji:"🐴", en:"horseshoe", yomi:"ホースシュー", ja:"ていてつ"},
+  ]},
+  { label:"🦋 こども→そだった すがた", words:[
+    {emoji:"🐛", en:"caterpillar", yomi:"キャタピラー", ja:"いもむし"},
+    {emoji:"🦋", en:"butterfly", yomi:"バタフライ", ja:"ちょう"},
+    {emoji:"🐸", en:"tadpole", yomi:"タドポール", ja:"おたまじゃくし"},
+    {emoji:"🐸", en:"frog", yomi:"フロッグ", ja:"カエル"},
+  ]},
+];
+
+const DAY21 = [
+  { label:"😮‍💨 つかれ", words:[
+    {emoji:"😮‍💨", en:"weary", yomi:"ウェアリー", ja:"つかれきった"},
+    {emoji:"😩", en:"tired", yomi:"タイアード", ja:"つかれた"},
+    {emoji:"🪫", en:"drained", yomi:"ドレインド", ja:"へとへとの"},
+    {emoji:"🥴", en:"fatigued", yomi:"ファティーグド", ja:"つかれはてた"},
+    {emoji:"⚡", en:"energetic", yomi:"エナジェティック", ja:"げんきいっぱいの（はんたい）"},
+    {emoji:"🌟", en:"refreshed", yomi:"リフレッシュト", ja:"すっきりした（はんたい）"},
+  ]},
+  { label:"😠 おこりっぽい", words:[
+    {emoji:"😒", en:"grumpy", yomi:"グランピー", ja:"きげんの わるい"},
+    {emoji:"😤", en:"irritable", yomi:"イリタブル", ja:"おこりっぽい"},
+    {emoji:"😾", en:"touchy", yomi:"タッチー", ja:"おこりやすい"},
+    {emoji:"😡", en:"cranky", yomi:"クランキー", ja:"ふきげんで おこりっぽい"},
+    {emoji:"😄", en:"cheerful", yomi:"チアフル", ja:"ごきげんな（はんたい）"},
+    {emoji:"😎", en:"easygoing", yomi:"イージーゴーイング", ja:"おおらかな（はんたい）"},
+  ]},
+  { label:"⭐ 大事", words:[
+    {emoji:"❗", en:"important", yomi:"インポータント", ja:"じゅうような"},
+    {emoji:"🔑", en:"crucial", yomi:"クルーシャル", ja:"けっていてきに 大事な"},
+    {emoji:"🧩", en:"essential", yomi:"エッセンシャル", ja:"かかせない"},
+    {emoji:"❤️‍🔥", en:"vital", yomi:"ヴァイタル", ja:"ぜったいに 必要な"},
+    {emoji:"🤏", en:"trivial", yomi:"トリヴィアル", ja:"ささいな（はんたい）"},
+    {emoji:"🫥", en:"negligible", yomi:"ネグリジブル", ja:"むしできるほど 小さい（はんたい）"},
+  ]},
+  { label:"💧 かわいた→からから", words:[
+    {emoji:"🍽️", en:"hungry", yomi:"ハングリー", ja:"おなかが すいた"},
+    {emoji:"🥣", en:"starving", yomi:"スターヴィング", ja:"うえじにしそうな"},
+    {emoji:"💧", en:"thirsty", yomi:"サースティー", ja:"のどが かわいた"},
+    {emoji:"🏜️", en:"parched", yomi:"パーチト", ja:"からからに かわいた（いちばん強い）"},
+  ]},
+  { label:"🍷 ためる ばしょと もの", words:[
+    {emoji:"🌾", en:"granary", yomi:"グラナリー", ja:"こくもつ庫"},
+    {emoji:"🌽", en:"grain", yomi:"グレイン", ja:"こくもつ"},
+    {emoji:"🍾", en:"cellar", yomi:"セラー", ja:"ちか貯蔵庫"},
+    {emoji:"🍷", en:"wine", yomi:"ワイン", ja:"ワイン"},
+  ]},
+  { label:"⚖️ はかる どうぐと もの", words:[
+    {emoji:"🕐", en:"clock", yomi:"クロック", ja:"とけい"},
+    {emoji:"⏳", en:"time", yomi:"タイム", ja:"じかん"},
+    {emoji:"⚖️", en:"scale", yomi:"スケール", ja:"はかり"},
+    {emoji:"🏋️", en:"weight", yomi:"ウェイト", ja:"おもさ"},
+  ]},
+];
+
+const DAY22 = [
+  { label:"✨ うつくしい", words:[
+    {emoji:"🌸", en:"beautiful", yomi:"ビューティフル", ja:"うつくしい"},
+    {emoji:"💕", en:"lovely", yomi:"ラブリー", ja:"すてきな"},
+    {emoji:"😍", en:"attractive", yomi:"アトラクティブ", ja:"みりょくてきな"},
+    {emoji:"💎", en:"exquisite", yomi:"エクスクィジット", ja:"うっとりするほど美しい"},
+    {emoji:"👹", en:"ugly", yomi:"アグリー", ja:"みにくい（はんたい）"},
+    {emoji:"😬", en:"hideous", yomi:"ヒディアス", ja:"ぞっとするほど みにくい（はんたい）"},
+  ]},
+  { label:"🦁 ゆうかん", words:[
+    {emoji:"🎢", en:"daring", yomi:"デアリング", ja:"だいたんな"},
+    {emoji:"🦁", en:"fearless", yomi:"フィアレス", ja:"おそれしらずの"},
+    {emoji:"💪", en:"bold", yomi:"ボールド", ja:"ゆうかんな"},
+    {emoji:"🧗", en:"intrepid", yomi:"イントレピッド", ja:"こわいもの知らずの"},
+    {emoji:"🐔", en:"cowardly", yomi:"カワードリー", ja:"おくびょうな（はんたい）"},
+    {emoji:"🙈", en:"timid", yomi:"ティミッド", ja:"おどおどした（はんたい）"},
+  ]},
+  { label:"🦉 かしこい判断", words:[
+    {emoji:"🦉", en:"wise", yomi:"ワイズ", ja:"かしこい"},
+    {emoji:"🧠", en:"sensible", yomi:"センシブル", ja:"ふんべつのある"},
+    {emoji:"🏛️", en:"sound", yomi:"サウンド", ja:"けんじつな"},
+    {emoji:"⚖️", en:"judicious", yomi:"ジュディシャス", ja:"ふんべつのある・けんめいな"},
+    {emoji:"🤡", en:"foolish", yomi:"フーリッシュ", ja:"おろかな（はんたい）"},
+    {emoji:"💨", en:"rash", yomi:"ラッシュ", ja:"むこうみずな（はんたい）"},
+  ]},
+  { label:"⭐ わるい→さいあく", words:[
+    {emoji:"👍", en:"good", yomi:"グッド", ja:"よい"},
+    {emoji:"💯", en:"perfect", yomi:"パーフェクト", ja:"かんぺきな"},
+    {emoji:"👎", en:"bad", yomi:"バッド", ja:"わるい"},
+    {emoji:"💥", en:"atrocious", yomi:"アトローシャス", ja:"ひどく さいあくな（いちばん強い）"},
+  ]},
+  { label:"🪜 一部と ぜんたい", words:[
+    {emoji:"☸️", en:"spoke", yomi:"スポーク", ja:"車輪の ほね"},
+    {emoji:"🛞", en:"wheel", yomi:"ホイール", ja:"車輪"},
+    {emoji:"➖", en:"rung", yomi:"ラング", ja:"はしごの だん"},
+    {emoji:"🪜", en:"ladder", yomi:"ラダー", ja:"はしご"},
+  ]},
+  { label:"🏦 人と はたらく ばしょ", words:[
+    {emoji:"💰", en:"banker", yomi:"バンカー", ja:"ぎんこういん"},
+    {emoji:"🏦", en:"bank", yomi:"バンク", ja:"ぎんこう"},
+    {emoji:"📚", en:"librarian", yomi:"ライブラリアン", ja:"としょかんいん"},
+    {emoji:"🏛️", en:"library", yomi:"ライブラリー", ja:"としょかん"},
+  ]},
+];
+
+const DAY23 = [
+  { label:"🥳 大よろこび", words:[
+    {emoji:"😄", en:"joyful", yomi:"ジョイフル", ja:"よろこびに みちた"},
+    {emoji:"😊", en:"cheerful", yomi:"チアフル", ja:"ごきげんな"},
+    {emoji:"🎉", en:"merry", yomi:"メリー", ja:"ゆかいな"},
+    {emoji:"🥳", en:"jubilant", yomi:"ジュビラント", ja:"大よろこびの"},
+    {emoji:"😢", en:"sad", yomi:"サッド", ja:"かなしい（はんたい）"},
+    {emoji:"😩", en:"miserable", yomi:"ミゼラブル", ja:"みじめな（はんたい）"},
+  ]},
+  { label:"😴 ねむい・だるい", words:[
+    {emoji:"😪", en:"sleepy", yomi:"スリーピー", ja:"ねむい"},
+    {emoji:"🥱", en:"drowsy", yomi:"ドラウジー", ja:"うとうとする"},
+    {emoji:"🦥", en:"sluggish", yomi:"スラギッシュ", ja:"だるい"},
+    {emoji:"😵‍💫", en:"lethargic", yomi:"レサージック", ja:"けだるく 元気のない"},
+    {emoji:"⚡", en:"alert", yomi:"アラート", ja:"きびきびした（はんたい）"},
+    {emoji:"👀", en:"awake", yomi:"アウェイク", ja:"目がさえた（はんたい）"},
+  ]},
+  { label:"🌈 あざやか", words:[
+    {emoji:"☀️", en:"bright", yomi:"ブライト", ja:"あかるい"},
+    {emoji:"🌈", en:"vivid", yomi:"ヴィヴィッド", ja:"あざやかな"},
+    {emoji:"💎", en:"brilliant", yomi:"ブリリアント", ja:"まばゆい"},
+    {emoji:"🎨", en:"vibrant", yomi:"ヴァイブラント", ja:"いきいきと あざやかな"},
+    {emoji:"🌫️", en:"dull", yomi:"ダル", ja:"くすんだ（はんたい）"},
+    {emoji:"🫥", en:"faded", yomi:"フェイデッド", ja:"あせた（はんたい）"},
+  ]},
+  { label:"🔥 よわい→つよい にえ", words:[
+    {emoji:"🏃", en:"jog", yomi:"ジョグ", ja:"ゆっくり走る"},
+    {emoji:"💨", en:"sprint", yomi:"スプリント", ja:"ぜんりょくで走る"},
+    {emoji:"🍲", en:"simmer", yomi:"シマー", ja:"ことこと にる"},
+    {emoji:"🔥", en:"boil", yomi:"ボイル", ja:"ぐらぐら にる（いちばん強い）"},
+  ]},
+  { label:"🍯 その人と とれる もの", words:[
+    {emoji:"🧑‍🌾", en:"beekeeper", yomi:"ビーキーパー", ja:"ようほうか"},
+    {emoji:"🍯", en:"honey", yomi:"ハニー", ja:"はちみつ"},
+    {emoji:"🐄", en:"dairy farmer", yomi:"デイリーファーマー", ja:"らくのうか"},
+    {emoji:"🥛", en:"milk", yomi:"ミルク", ja:"ぎゅうにゅう"},
+  ]},
+  { label:"🎸 一人と あつまり", words:[
+    {emoji:"🎸", en:"musician", yomi:"ミュージシャン", ja:"えんそうか"},
+    {emoji:"🎶", en:"band", yomi:"バンド", ja:"がくだん"},
+    {emoji:"⚽", en:"player", yomi:"プレイヤー", ja:"せんしゅ"},
+    {emoji:"👥", en:"team", yomi:"チーム", ja:"チーム"},
+  ]},
+];
+
+const DAY24 = [
+  { label:"📢 うるさい", words:[
+    {emoji:"📢", en:"loud", yomi:"ラウド", ja:"うるさい"},
+    {emoji:"🔊", en:"noisy", yomi:"ノイジー", ja:"そうぞうしい"},
+    {emoji:"⛈️", en:"thunderous", yomi:"サンダラス", ja:"とどろくような"},
+    {emoji:"🎪", en:"raucous", yomi:"ローカス", ja:"がやがや やかましい"},
+    {emoji:"🤫", en:"quiet", yomi:"クワイエット", ja:"しずかな（はんたい）"},
+    {emoji:"🍃", en:"faint", yomi:"フェイント", ja:"かすかな（はんたい）"},
+  ]},
+  { label:"🕳️ からっぽ", words:[
+    {emoji:"⬜", en:"empty", yomi:"エンプティー", ja:"からっぽの"},
+    {emoji:"🚪", en:"vacant", yomi:"ヴェイカント", ja:"あいている"},
+    {emoji:"🥥", en:"hollow", yomi:"ホロウ", ja:"なかが うつろな"},
+    {emoji:"🏜️", en:"barren", yomi:"バレン", ja:"なにも ない・不毛の"},
+    {emoji:"🧳", en:"full", yomi:"フル", ja:"いっぱいの（はんたい）"},
+    {emoji:"👥", en:"crowded", yomi:"クラウデッド", ja:"こみあった（はんたい）"},
+  ]},
+  { label:"🦄 めずらしい", words:[
+    {emoji:"🦄", en:"unique", yomi:"ユニーク", ja:"どくとくの"},
+    {emoji:"🎯", en:"distinctive", yomi:"ディスティンクティブ", ja:"とくちょうてきな"},
+    {emoji:"❓", en:"unusual", yomi:"アンユージュアル", ja:"めずらしい"},
+    {emoji:"🌀", en:"peculiar", yomi:"ペキュリアー", ja:"かわった・どくとくな"},
+    {emoji:"🔁", en:"common", yomi:"コモン", ja:"ありふれた（はんたい）"},
+    {emoji:"📎", en:"ordinary", yomi:"オーディナリー", ja:"ふつうの（はんたい）"},
+  ]},
+  { label:"🔊 うるさい→つんざく", words:[
+    {emoji:"💡", en:"bright", yomi:"ブライト", ja:"あかるい"},
+    {emoji:"🤩", en:"dazzling", yomi:"ダズリング", ja:"目が くらむほど"},
+    {emoji:"📢", en:"loud", yomi:"ラウド", ja:"うるさい"},
+    {emoji:"🔊", en:"deafening", yomi:"デフニング", ja:"みみを つんざくほど（いちばん強い）"},
+  ]},
+  { label:"🚣 どうぐと はたらき", words:[
+    {emoji:"🚣", en:"oar", yomi:"オール", ja:"かい"},
+    {emoji:"🌊", en:"row", yomi:"ロウ", ja:"こぐ"},
+    {emoji:"🛞", en:"pump", yomi:"ポンプ", ja:"ポンプ"},
+    {emoji:"🎈", en:"inflate", yomi:"インフレイト", ja:"ふくらませる"},
+  ]},
+  { label:"🏹 いれものと いれる もの", words:[
+    {emoji:"🏹", en:"quiver", yomi:"クィヴァー", ja:"矢いれ"},
+    {emoji:"➶", en:"arrows", yomi:"アローズ", ja:"矢"},
+    {emoji:"🔫", en:"holster", yomi:"ホルスター", ja:"ピストルいれ"},
+    {emoji:"🔫", en:"pistol", yomi:"ピストル", ja:"ピストル"},
+  ]},
+];
+
+const DAY25 = [
+  { label:"🥚 よわい・こわれやすい", words:[
+    {emoji:"🥚", en:"fragile", yomi:"フラジャイル", ja:"こわれやすい"},
+    {emoji:"🕸️", en:"delicate", yomi:"デリケット", ja:"きゃしゃな"},
+    {emoji:"🍂", en:"frail", yomi:"フレイル", ja:"ひよわな"},
+    {emoji:"🫧", en:"feeble", yomi:"フィーブル", ja:"よわよわしい"},
+    {emoji:"💪", en:"strong", yomi:"ストロング", ja:"つよい（はんたい）"},
+    {emoji:"🧱", en:"sturdy", yomi:"スターディー", ja:"がんじょうな（はんたい）"},
+  ]},
+  { label:"🌾 みのり ゆたか", words:[
+    {emoji:"🌱", en:"fertile", yomi:"ファータイル", ja:"みのり ゆたかな"},
+    {emoji:"🌾", en:"productive", yomi:"プロダクティブ", ja:"よく そだつ"},
+    {emoji:"🌴", en:"lush", yomi:"ラッシュ", ja:"みどり ゆたかな"},
+    {emoji:"🧺", en:"bountiful", yomi:"バウンティフル", ja:"みのり ゆたかな"},
+    {emoji:"🏜️", en:"barren", yomi:"バレン", ja:"不毛の（はんたい）"},
+    {emoji:"🚱", en:"sterile", yomi:"ステライル", ja:"なにも そだたない（はんたい）"},
+  ]},
+  { label:"🗿 うごかない", words:[
+    {emoji:"🧍", en:"still", yomi:"スティル", ja:"うごかない"},
+    {emoji:"🗿", en:"motionless", yomi:"モーションレス", ja:"びくとも しない"},
+    {emoji:"⚓", en:"immobile", yomi:"イモービル", ja:"うごけない"},
+    {emoji:"🅿️", en:"stationary", yomi:"ステーショナリー", ja:"じっと とまった"},
+    {emoji:"🏃", en:"moving", yomi:"ムービング", ja:"うごいている（はんたい）"},
+    {emoji:"🛴", en:"mobile", yomi:"モービル", ja:"うごける（はんたい）"},
+  ]},
+  { label:"🏔️ 小さい→大きい", words:[
+    {emoji:"⛰️", en:"hill", yomi:"ヒル", ja:"おか"},
+    {emoji:"🏔️", en:"mountain", yomi:"マウンテン", ja:"やま"},
+    {emoji:"🏕️", en:"pond", yomi:"ポンド", ja:"いけ"},
+    {emoji:"🏞️", en:"lake", yomi:"レイク", ja:"みずうみ（いちばん大きい）"},
+  ]},
+  { label:"⛪ 人と はたらく ばしょ", words:[
+    {emoji:"⛪", en:"priest", yomi:"プリースト", ja:"せいしょくしゃ"},
+    {emoji:"🕍", en:"church", yomi:"チャーチ", ja:"きょうかい"},
+    {emoji:"🧑‍🏫", en:"teacher", yomi:"ティーチャー", ja:"せんせい"},
+    {emoji:"🏫", en:"school", yomi:"スクール", ja:"がっこう"},
+  ]},
+  { label:"⛓️ 一部と ぜんたい", words:[
+    {emoji:"🍞", en:"slice", yomi:"スライス", ja:"ひと切れ"},
+    {emoji:"🥖", en:"loaf", yomi:"ローフ", ja:"パン1本"},
+    {emoji:"🔗", en:"link", yomi:"リンク", ja:"くさりの わ"},
+    {emoji:"⛓️", en:"chain", yomi:"チェーン", ja:"くさり"},
+  ]},
+];
+
+const DAY26 = [
+  { label:"🗑️ きたない", words:[
+    {emoji:"🧦", en:"dirty", yomi:"ダーティー", ja:"よごれた"},
+    {emoji:"🤢", en:"filthy", yomi:"フィルシー", ja:"ひどく きたない"},
+    {emoji:"🛢️", en:"grimy", yomi:"グライミー", ja:"あかじみた"},
+    {emoji:"🏚️", en:"squalid", yomi:"スクワリッド", ja:"きたなく むさくるしい"},
+    {emoji:"🧼", en:"clean", yomi:"クリーン", ja:"せいけつな（はんたい）"},
+    {emoji:"✨", en:"spotless", yomi:"スポットレス", ja:"よごれ ひとつない（はんたい）"},
+  ]},
+  { label:"🙈 うちき", words:[
+    {emoji:"😳", en:"shy", yomi:"シャイ", ja:"はずかしがりの"},
+    {emoji:"🙈", en:"timid", yomi:"ティミッド", ja:"おどおどした"},
+    {emoji:"🤐", en:"reserved", yomi:"リザーブド", ja:"ひかえめな"},
+    {emoji:"☺️", en:"bashful", yomi:"バッシュフル", ja:"はにかみやの"},
+    {emoji:"🕺", en:"outgoing", yomi:"アウトゴーイング", ja:"しゃこうてきな（はんたい）"},
+    {emoji:"😎", en:"confident", yomi:"コンフィデント", ja:"じしんまんまんの（はんたい）"},
+  ]},
+  { label:"🐕 ねばりづよい", words:[
+    {emoji:"📢", en:"insistent", yomi:"インシステント", ja:"つよく いいはる"},
+    {emoji:"🧗", en:"persistent", yomi:"パーシステント", ja:"ねばりづよい"},
+    {emoji:"🎯", en:"determined", yomi:"ディターミンド", ja:"けついの かたい"},
+    {emoji:"🐕", en:"dogged", yomi:"ドッグド", ja:"がんこに やりぬく"},
+    {emoji:"🏳️", en:"yielding", yomi:"イールディング", ja:"すぐ ゆずる（はんたい）"},
+    {emoji:"😶", en:"passive", yomi:"パッシブ", ja:"うけみの（はんたい）"},
+  ]},
+  { label:"😭 うれしい→たまらない", words:[
+    {emoji:"😢", en:"sad", yomi:"サッド", ja:"かなしい"},
+    {emoji:"😞", en:"despairing", yomi:"ディスペアリング", ja:"ぜつぼうした"},
+    {emoji:"🙂", en:"glad", yomi:"グラッド", ja:"うれしい"},
+    {emoji:"🤩", en:"overjoyed", yomi:"オーバージョイド", ja:"うれしくて たまらない（いちばん強い）"},
+  ]},
+  { label:"🍺 つくる人と 作品", words:[
+    {emoji:"👨‍🍳", en:"chef", yomi:"シェフ", ja:"りょうりにん"},
+    {emoji:"🍽️", en:"dish", yomi:"ディッシュ", ja:"りょうり"},
+    {emoji:"🏭", en:"brewer", yomi:"ブリューワー", ja:"じょうぞう者"},
+    {emoji:"🍺", en:"beer", yomi:"ビア", ja:"ビール"},
+  ]},
+  { label:"🔢 小さい→大きい あつまり", words:[
+    {emoji:"🔤", en:"letter", yomi:"レター", ja:"もじ"},
+    {emoji:"📝", en:"word", yomi:"ワード", ja:"たんご"},
+    {emoji:"1️⃣", en:"digit", yomi:"ディジット", ja:"すうじ"},
+    {emoji:"🔢", en:"number", yomi:"ナンバー", ja:"すう（かず）"},
+  ]},
+];
+
+const DAY27 = [
+  { label:"😱 こわがる", words:[
+    {emoji:"😨", en:"scared", yomi:"スケアード", ja:"こわがった"},
+    {emoji:"😰", en:"afraid", yomi:"アフレイド", ja:"おそれた"},
+    {emoji:"😖", en:"fearful", yomi:"フィアフル", ja:"こわがりの"},
+    {emoji:"🗿", en:"petrified", yomi:"ペトリファイド", ja:"こわくて かたまった"},
+    {emoji:"🦁", en:"brave", yomi:"ブレイブ", ja:"ゆうかんな（はんたい）"},
+    {emoji:"😌", en:"fearless", yomi:"フィアレス", ja:"おそれしらずの（はんたい）"},
+  ]},
+  { label:"🤥 うそ・ごまかし", words:[
+    {emoji:"🙊", en:"dishonest", yomi:"ディスオネスト", ja:"ふしょうじきな"},
+    {emoji:"🎭", en:"deceitful", yomi:"ディシートフル", ja:"あざむく"},
+    {emoji:"🤥", en:"lying", yomi:"ライイング", ja:"うそをつく"},
+    {emoji:"💸", en:"fraudulent", yomi:"フロージュレント", ja:"さぎの・いんちきな"},
+    {emoji:"😇", en:"honest", yomi:"オネスト", ja:"しょうじきな（はんたい）"},
+    {emoji:"💯", en:"truthful", yomi:"トゥルースフル", ja:"しんじつの（はんたい）"},
+  ]},
+  { label:"🗣️ おしゃべり", words:[
+    {emoji:"🗣️", en:"talkative", yomi:"トーカティブ", ja:"おしゃべりな"},
+    {emoji:"💬", en:"chatty", yomi:"チャッティー", ja:"よく しゃべる"},
+    {emoji:"📜", en:"verbose", yomi:"ヴァーボース", ja:"ことばが おおい"},
+    {emoji:"🦜", en:"garrulous", yomi:"ギャルラス", ja:"べらべら よく しゃべる"},
+    {emoji:"🤐", en:"quiet", yomi:"クワイエット", ja:"むくちな（はんたい）"},
+    {emoji:"🔇", en:"silent", yomi:"サイレント", ja:"だんまりの（はんたい）"},
+  ]},
+  { label:"🥵 あつい→うだる", words:[
+    {emoji:"🍃", en:"cool", yomi:"クール", ja:"すずしい"},
+    {emoji:"🧊", en:"icy", yomi:"アイシー", ja:"こおるほど つめたい"},
+    {emoji:"☀️", en:"warm", yomi:"ウォーム", ja:"あたたかい"},
+    {emoji:"🥵", en:"sweltering", yomi:"スウェルタリング", ja:"うだるほど あつい（いちばん強い）"},
+  ]},
+  { label:"🐴 すみかと どうぶつ", words:[
+    {emoji:"🏠", en:"stable", yomi:"ステイブル", ja:"うまごや"},
+    {emoji:"🐴", en:"horse", yomi:"ホース", ja:"うま"},
+    {emoji:"🏡", en:"kennel", yomi:"ケネル", ja:"いぬごや"},
+    {emoji:"🐕", en:"dog", yomi:"ドッグ", ja:"いぬ"},
+  ]},
+  { label:"🧹 どうぐと はたらき", words:[
+    {emoji:"🖌️", en:"brush", yomi:"ブラシ", ja:"ふで"},
+    {emoji:"🎨", en:"paint", yomi:"ペイント", ja:"えを かく"},
+    {emoji:"🧹", en:"broom", yomi:"ブルーム", ja:"ほうき"},
+    {emoji:"🧽", en:"sweep", yomi:"スウィープ", ja:"はく（そうじする）"},
+  ]},
+];
+
+const DAY28 = [
+  { label:"🧊 よそよそしい", words:[
+    {emoji:"🥶", en:"cold", yomi:"コールド", ja:"つめたい たいどの"},
+    {emoji:"🚶", en:"distant", yomi:"ディスタント", ja:"よそよそしい"},
+    {emoji:"😤", en:"unfriendly", yomi:"アンフレンドリー", ja:"ふあいそうな"},
+    {emoji:"🧊", en:"aloof", yomi:"アルーフ", ja:"うちとけない"},
+    {emoji:"🤗", en:"warm", yomi:"ウォーム", ja:"あたたかい（はんたい）"},
+    {emoji:"😊", en:"friendly", yomi:"フレンドリー", ja:"したしみやすい（はんたい）"},
+  ]},
+  { label:"🔧 こわれた", words:[
+    {emoji:"💔", en:"broken", yomi:"ブロークン", ja:"こわれた"},
+    {emoji:"🩹", en:"damaged", yomi:"ダメージド", ja:"いたんだ"},
+    {emoji:"🏚️", en:"ruined", yomi:"ルインド", ja:"だめになった"},
+    {emoji:"⚙️", en:"defective", yomi:"ディフェクティブ", ja:"けっかんの ある"},
+    {emoji:"💯", en:"perfect", yomi:"パーフェクト", ja:"かんぺきな（はんたい）"},
+    {emoji:"✅", en:"intact", yomi:"インタクト", ja:"きずひとつない（はんたい）"},
+  ]},
+  { label:"🤔 うたがう", words:[
+    {emoji:"🤨", en:"doubtful", yomi:"ダウトフル", ja:"うたがわしい"},
+    {emoji:"🧐", en:"skeptical", yomi:"スケプティカル", ja:"うたがいぶかい"},
+    {emoji:"🤷", en:"unsure", yomi:"アンシュア", ja:"かくしんが もてない"},
+    {emoji:"🕵️", en:"dubious", yomi:"デュービアス", ja:"あやしくて うたがわしい"},
+    {emoji:"✔️", en:"certain", yomi:"サートゥン", ja:"かくじつな（はんたい）"},
+    {emoji:"😎", en:"confident", yomi:"コンフィデント", ja:"じしんの ある（はんたい）"},
+  ]},
+  { label:"🎉 よろこぶ→大こうふん", words:[
+    {emoji:"😒", en:"annoyed", yomi:"アノイド", ja:"いらついた"},
+    {emoji:"🤬", en:"livid", yomi:"リヴィッド", ja:"かっとなった"},
+    {emoji:"🙂", en:"pleased", yomi:"プリーズド", ja:"よろこんだ"},
+    {emoji:"🤩", en:"thrilled", yomi:"スリルド", ja:"大こうふんの（いちばん強い）"},
+  ]},
+  { label:"✈️ 人と はたらく ばしょ", words:[
+    {emoji:"🧑‍⚕️", en:"doctor", yomi:"ドクター", ja:"いしゃ"},
+    {emoji:"🏥", en:"hospital", yomi:"ホスピタル", ja:"びょういん"},
+    {emoji:"🧑‍✈️", en:"pilot", yomi:"パイロット", ja:"そうじゅうし"},
+    {emoji:"✈️", en:"cockpit", yomi:"コックピット", ja:"そうじゅうせき"},
+  ]},
+  { label:"🍇 一部と あつまり", words:[
+    {emoji:"🌿", en:"twig", yomi:"トゥイッグ", ja:"こえだ"},
+    {emoji:"🌳", en:"branch", yomi:"ブランチ", ja:"えだ"},
+    {emoji:"🟣", en:"grape", yomi:"グレープ", ja:"ぶどうの つぶ"},
+    {emoji:"🍇", en:"bunch", yomi:"バンチ", ja:"ひとふさ"},
+  ]},
+];
+
+const DAY29 = [
+  { label:"🔍 はっきり", words:[
+    {emoji:"🔍", en:"clear", yomi:"クリア", ja:"はっきりした"},
+    {emoji:"📌", en:"definite", yomi:"デフィニット", ja:"めいかくな"},
+    {emoji:"🎯", en:"distinct", yomi:"ディスティンクト", ja:"きわだった"},
+    {emoji:"📢", en:"explicit", yomi:"エクスプリシット", ja:"はっきりと しめされた"},
+    {emoji:"🌫️", en:"vague", yomi:"ヴェイグ", ja:"あいまいな（はんたい）"},
+    {emoji:"❓", en:"ambiguous", yomi:"アンビギュアス", ja:"どちらとも とれる（はんたい）"},
+  ]},
+  { label:"💥 はげしい・つよい", words:[
+    {emoji:"💥", en:"intense", yomi:"インテンス", ja:"はげしい"},
+    {emoji:"💪", en:"powerful", yomi:"パワフル", ja:"ちからづよい"},
+    {emoji:"🐅", en:"fierce", yomi:"フィアス", ja:"すさまじい"},
+    {emoji:"🏔️", en:"formidable", yomi:"フォーミダブル", ja:"手ごわく つよい"},
+    {emoji:"🥀", en:"weak", yomi:"ウィーク", ja:"よわい（はんたい）"},
+    {emoji:"🍃", en:"mild", yomi:"マイルド", ja:"おだやかな（はんたい）"},
+  ]},
+  { label:"🔮 なぞめいた", words:[
+    {emoji:"🔮", en:"mysterious", yomi:"ミステリアス", ja:"なぞめいた"},
+    {emoji:"🧩", en:"puzzling", yomi:"パズリング", ja:"なぞの ような"},
+    {emoji:"👽", en:"strange", yomi:"ストレンジ", ja:"ふしぎな"},
+    {emoji:"🌀", en:"enigmatic", yomi:"エニグマティック", ja:"なぞめいて わかりにくい"},
+    {emoji:"💡", en:"obvious", yomi:"オブヴィアス", ja:"あきらかな（はんたい）"},
+    {emoji:"⚪", en:"plain", yomi:"プレイン", ja:"あっさりした（はんたい）"},
+  ]},
+  { label:"✂️ よわい→つよい こわし", words:[
+    {emoji:"✂️", en:"cut", yomi:"カット", ja:"きる"},
+    {emoji:"🪓", en:"sever", yomi:"セヴァー", ja:"すっぱり きりはなす"},
+    {emoji:"🙇", en:"bend", yomi:"ベンド", ja:"まげる"},
+    {emoji:"🦴", en:"snap", yomi:"スナップ", ja:"ぽきっと おる（いちばん強い）"},
+  ]},
+  { label:"🪑 つくる人と 作品", words:[
+    {emoji:"👷", en:"carpenter", yomi:"カーペンター", ja:"だいく"},
+    {emoji:"🪑", en:"furniture", yomi:"ファニチャー", ja:"かぐ"},
+    {emoji:"🏺", en:"potter", yomi:"ポッター", ja:"とうげいか"},
+    {emoji:"🍶", en:"pottery", yomi:"ポタリー", ja:"やきもの"},
+  ]},
+  { label:"🎹 一部と ぜんたい", words:[
+    {emoji:"🎹", en:"key", yomi:"キー", ja:"けんばん"},
+    {emoji:"🎹", en:"piano", yomi:"ピアノ", ja:"ピアノ"},
+    {emoji:"🎻", en:"string", yomi:"ストリング", ja:"げん"},
+    {emoji:"🎸", en:"guitar", yomi:"ギター", ja:"ギター"},
+  ]},
+];
+
+const DAY30 = [
+  { label:"🏃 いそがしい", words:[
+    {emoji:"🏃", en:"busy", yomi:"ビジー", ja:"いそがしい"},
+    {emoji:"🌪️", en:"hectic", yomi:"ヘクティック", ja:"あわただしい"},
+    {emoji:"😵‍💫", en:"frantic", yomi:"フランティック", ja:"てんてこまいの"},
+    {emoji:"🏙️", en:"bustling", yomi:"バスリング", ja:"にぎやかで せわしい"},
+    {emoji:"😴", en:"idle", yomi:"アイドル", ja:"ひまな（はんたい）"},
+    {emoji:"🛋️", en:"relaxed", yomi:"リラックスト", ja:"ゆったりした（はんたい）"},
+  ]},
+  { label:"🎁 きまえのよい", words:[
+    {emoji:"🎁", en:"generous", yomi:"ジェネラス", ja:"きまえのよい"},
+    {emoji:"🤲", en:"giving", yomi:"ギヴィング", ja:"おしみなく あたえる"},
+    {emoji:"💝", en:"charitable", yomi:"チャリタブル", ja:"なさけぶかい"},
+    {emoji:"👑", en:"munificent", yomi:"ミューニフィセント", ja:"とても きまえのよい"},
+    {emoji:"🪙", en:"stingy", yomi:"スティンジー", ja:"けちな（はんたい）"},
+    {emoji:"🤑", en:"greedy", yomi:"グリーディー", ja:"よくばりな（はんたい）"},
+  ]},
+  { label:"🤝 しんらいできる", words:[
+    {emoji:"🤝", en:"reliable", yomi:"リライアブル", ja:"たよれる"},
+    {emoji:"🛡️", en:"dependable", yomi:"ディペンダブル", ja:"あてに できる"},
+    {emoji:"💯", en:"trustworthy", yomi:"トラストワージー", ja:"しんらいできる"},
+    {emoji:"⚓", en:"steadfast", yomi:"ステッドファスト", ja:"ぶれずに しっかりした"},
+    {emoji:"🌬️", en:"fickle", yomi:"フィックル", ja:"きまぐれな（はんたい）"},
+    {emoji:"🍂", en:"flaky", yomi:"フレイキー", ja:"あてに ならない（はんたい）"},
+  ]},
+  { label:"💧 ぬれた→びしょびしょ", words:[
+    {emoji:"🩹", en:"damaged", yomi:"ダメージド", ja:"いたんだ"},
+    {emoji:"💥", en:"destroyed", yomi:"デストロイド", ja:"こわしつくされた"},
+    {emoji:"💧", en:"wet", yomi:"ウェット", ja:"ぬれた"},
+    {emoji:"🌊", en:"soaked", yomi:"ソークト", ja:"びしょびしょの（いちばん強い）"},
+  ]},
+  { label:"🍇 そだてる ばしょと 作物", words:[
+    {emoji:"🍎", en:"orchard", yomi:"オーチャード", ja:"くだもの畑"},
+    {emoji:"🍑", en:"fruit", yomi:"フルーツ", ja:"くだもの"},
+    {emoji:"🍇", en:"vineyard", yomi:"ヴィンヤード", ja:"ぶどう畑"},
+    {emoji:"🟣", en:"grapes", yomi:"グレープス", ja:"ぶどう"},
+  ]},
+  { label:"🔭 人と はたらく ばしょ", words:[
+    {emoji:"🧑‍🌾", en:"gardener", yomi:"ガードナー", ja:"にわし"},
+    {emoji:"🌷", en:"garden", yomi:"ガーデン", ja:"にわ"},
+    {emoji:"🔭", en:"astronomer", yomi:"アストロノマー", ja:"てんもんがくしゃ"},
+    {emoji:"🏢", en:"observatory", yomi:"オブザーバトリー", ja:"てんもんだい"},
+  ]},
+];
+
+// 31〜33日目は「図形だけの 特訓の 日」なので 単語は おやすみ（練習問題の 図形を やってね）。
+const DAY31 = [ { label:"🔷 図形：かさねる（合成）の 日", words:[
+  {emoji:"🔷", en:"shapes", yomi:"シェイプス", ja:"きょうは 単語は おやすみ。「やさしめ／ほんばん」で 図形を <b>かさねる</b> 練習を しよう！"},
+]}];
+const DAY32 = [ { label:"🔄 図形：回転（右に90ど）の 日", words:[
+  {emoji:"🔄", en:"shapes", yomi:"シェイプス", ja:"きょうは 単語は おやすみ。「やさしめ／ほんばん」で 図形を <b>まわす</b> 練習を しよう！"},
+]}];
+const DAY33 = [ { label:"🪞 図形：鏡・白黒反転の 日", words:[
+  {emoji:"🪞", en:"shapes", yomi:"シェイプス", ja:"きょうは 単語は おやすみ。「やさしめ／ほんばん」で <b>鏡・白黒はんてん</b> の 図形を やろう！"},
+]}];
+// どの日の 単語帳か（tango.html?day=4 など）。前の日に もどれば いつでも 復習できる。
+const DAYS_T = { 1: DAY1, 2: DAY2, 3: DAY3, 4: DAY4, 5: DAY5, 6: DAY6, 7: DAY7, 8: DAY8, 9: DAY9, 10: DAY10, 11: DAY11, 12: DAY12, 13: DAY13, 14: DAY14, 15: DAY15, 16: DAY16, 17: DAY17, 18: DAY18, 19: DAY19, 20: DAY20, 21: DAY21, 22: DAY22, 23: DAY23, 24: DAY24, 25: DAY25, 26: DAY26, 27: DAY27, 28: DAY28, 29: DAY29, 30: DAY30, 31: DAY31, 32: DAY32, 33: DAY33 };
+let CUR_DAY_T = parseInt(new URLSearchParams(location.search).get('day') || '1', 10);
+if(!DAYS_T[CUR_DAY_T]) CUR_DAY_T = 1;
+const GROUPS = DAYS_T[CUR_DAY_T];
+(function(){ const t = document.querySelector('.htitle'); if(t) t.insertAdjacentHTML('beforeend', ' <span style="font-size:13px;font-weight:800;opacity:.9">・'+CUR_DAY_T+'<ruby>日目<rt>にちめ</rt></ruby></span>'); })();
+
+// ===== 音読（英語を ネイティブの声で 読み上げ）=====
+let enVoice = null;
+function pickEnVoice(){
+  try{
+    const vs = speechSynthesis.getVoices();
+    // アメリカ英語(en-US)の 女性の声だけ えらぶ（いつも 同じ 女性が 読むように。renshu.html と そろえる）。
+    const isUS = v => /en[-_]US/i.test(v.lang);
+    const FEMALE = /Samantha|Ava|Allison|Susan|Zoe|Nicky|Joelle|Kathy|Vicki|Victoria|Zira|Aria|Jenny|Michelle|Google US English/i;
+    const MALE = /David|Mark|Guy|Eric|Tom|Alex|Fred|Evan|Nathan|Aaron|Daniel|Oliver|James|Bruce|Lee|Reed|Rocko|Junior|Ralph|Albert|Arthur|Gordon/i;
+    const NOVELTY = /Bad News|Good News|Bahh|Boing|Bells|Bubbles|Cellos|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Grandma|Grandpa|Sandy|Shelley|Flo|Eddy|ささやき|オルガン|スーパースター|トリノイド|ベル|道化|震え/i;
+    enVoice = vs.find(v => isUS(v) && /Samantha/i.test(v.name))
+           || vs.find(v => isUS(v) && FEMALE.test(v.name))
+           || vs.find(v => isUS(v) && !MALE.test(v.name) && !NOVELTY.test(v.name))
+           || vs.find(v => /^en/i.test(v.lang) && FEMALE.test(v.name))
+           || vs.find(v => isUS(v))
+           || null;
+  }catch(e){}
+}
+pickEnVoice();
+try{
+  if('speechSynthesis' in window){
+    speechSynthesis.onvoiceschanged = pickEnVoice;
+    setInterval(() => { try{ if(speechSynthesis.speaking) speechSynthesis.resume(); }catch(e){} }, 4000);
+  }
+}catch(e){}
+// デスクトップで 音が 出ない 既知バグを つぶした 読み上げ（renshu.html と そろえる）:
+//  ①utterance を つかまえて GC消滅を 防ぐ ②声指定で失敗→既定の声で再挑戦 ③声リストが空なら待つ
+const _uKeep = [];
+function _rawSpeak(text, useVoice){
+  try{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    if(useVoice && enVoice) u.voice = enVoice;
+    u.rate = 0.9;
+    const drop = () => { const i = _uKeep.indexOf(u); if(i >= 0) _uKeep.splice(i, 1); };
+    u.onend = drop;
+    u.onerror = drop;                     // 失敗しても 別の声で 読み直さない（二重読み・別人声を ふせぐ）
+    _uKeep.push(u);
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window) || !text) return;
+    if(!enVoice) pickEnVoice();
+    try{ speechSynthesis.resume(); }catch(e){}
+    const run = () => { if(!enVoice) pickEnVoice(); _rawSpeak(text, true); };
+    if(!speechSynthesis.getVoices().length){ setTimeout(run, 200); return; }
+    if(speechSynthesis.speaking || speechSynthesis.pending){
+      speechSynthesis.cancel();
+      setTimeout(run, 140);
+    }else{
+      run();
+    }
+  }catch(e){}
+}
+
+// 最初の クリック／キーで 音声を 有効化（PCで 鳴らない のを 直す）
+function unlockAudio(){
+  try{
+    if('speechSynthesis' in window){
+      speechSynthesis.resume();
+      const u = new SpeechSynthesisUtterance(' '); u.volume = 0; speechSynthesis.speak(u);
+    }
+  }catch(e){}
+  window.removeEventListener('pointerdown', unlockAudio);
+  window.removeEventListener('keydown', unlockAudio);
+}
+window.addEventListener('pointerdown', unlockAudio);
+window.addEventListener('keydown', unlockAudio);
+
+// おぼえた チェック・コイン・キャンディ の きおく
+const TKEY = "kouki-tango";
+const CKEY = "kouki-coins";
+const CANDYKEY = "kouki-candy";
+let learned = {};
+try { learned = JSON.parse(localStorage.getItem(TKEY) || "{}"); } catch(e){ learned = {}; }
+let coins = parseInt(localStorage.getItem(CKEY) || "0", 10) || 0;
+let candy = parseInt(localStorage.getItem(CANDYKEY) || "0", 10) || 0;
+const PER_WORD = 10;   // 1たんご = 10コイン
+const CANDY_COST = 100;
+
+function saveAll(){
+  try{
+    localStorage.setItem(TKEY, JSON.stringify(learned));
+    localStorage.setItem(CKEY, String(coins));
+    localStorage.setItem(CANDYKEY, String(candy));
+  }catch(e){}
+}
+
+// ===== サウンド =====
+let actx;
+function ctx(){
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  if(actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function note(f, t, dur, vol, type){
+  const c = ctx();
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = type || 'triangle';
+  o.frequency.value = f;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+function coinSound(){                          // チェック：マリオのコイン
+  try{
+    const c = ctx(); const t = c.currentTime;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = 'square';
+    o.frequency.setValueAtTime(987.77, t);
+    o.frequency.setValueAtTime(1318.51, t + 0.07);
+    g.gain.setValueAtTime(0.12, t);
+    g.gain.setValueAtTime(0.12, t + 0.07);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + 0.42);
+    o.connect(g); g.connect(c.destination);
+    o.start(t); o.stop(t + 0.44);
+  }catch(e){}
+}
+function uncheckSound(){                        // チェックを外す：やわらかい下降音
+  try{
+    const c = ctx(); const t = c.currentTime;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(520, t);
+    o.frequency.exponentialRampToValueAtTime(300, t + 0.14);
+    g.gain.setValueAtTime(0.09, t);
+    g.gain.exponentialRampToValueAtTime(0.0008, t + 0.2);
+    o.connect(g); g.connect(c.destination);
+    o.start(t); o.stop(t + 0.22);
+  }catch(e){}
+}
+function cheer(){                               // 1れつ コンプリート：「いえーい！」の 歓声
+  try{
+    const c = ctx(); const base = c.currentTime;
+    // よろこびの メロディ
+    [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) =>
+      note(f, base + i * 0.09, 0.3, 0.15, 'triangle'));
+    // 「いえーい」風の 歓声（ホワイトノイズの もりあがり＝拍手・かんせい）
+    const dur = 0.75;
+    const buf = c.createBuffer(1, Math.floor(c.sampleRate * dur), c.sampleRate);
+    const d = buf.getChannelData(0);
+    for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const src = c.createBufferSource(); src.buffer = buf;
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1500; bp.Q.value = 0.6;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, base);
+    g.gain.exponentialRampToValueAtTime(0.1, base + 0.18);
+    g.gain.exponentialRampToValueAtTime(0.0008, base + dur);
+    src.connect(bp); bp.connect(g); g.connect(c.destination);
+    src.start(base); src.stop(base + dur);
+  }catch(e){}
+}
+function buySound(){                            // コットンキャンディを かう：うれしいキラキラ
+  try{
+    const base = ctx().currentTime;
+    [783.99, 1046.50, 1318.51, 1567.98, 2093.00].forEach((f, i) =>
+      note(f, base + i * 0.07, 0.3, 0.15, 'triangle'));
+  }catch(e){}
+}
+
+function updateCoinBar(){
+  const cc = document.getElementById('coinCount');
+  const cy = document.getElementById('candyCount');
+  const fill = document.getElementById('coinFill');
+  const buy = document.getElementById('buyCandy');
+  if(cc) cc.textContent = coins;
+  if(cy) cy.textContent = candy;
+  if(fill) fill.style.width = Math.min(100, (coins % CANDY_COST) / CANDY_COST * 100) + '%';
+  if(buy){
+    const ready = coins >= CANDY_COST;
+    buy.disabled = !ready;
+    buy.classList.toggle('ready', ready);
+  }
+}
+
+const book = document.getElementById('book');
+GROUPS.forEach(g => {
+  const sec = document.createElement('div');
+  sec.innerHTML = '<div class="glabel">'+g.label+'</div>';
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  g.words.forEach(w => {
+    const c = document.createElement('div');
+    c.className = 'wc' + (learned[w.en] ? ' checked' : '');
+    c.title = 'おんどく：' + w.en;
+    c.innerHTML = '<span class="chk">✓</span>'
+      + '<div class="emoji">'+w.emoji+'</div>'
+      + '<div class="en"><ruby>'+w.en+'<rt>'+w.yomi+'</rt></ruby></div>'
+      + '<div class="ja">'+w.ja+'</div>';
+    // ホバー読み上げは しない（マウスが 動くたび 二重読みに なるため）。タップ／クリックで 1回 読む。
+    c.onclick = () => {
+      speak(w.en);                                          // タップ／クリックで 女性の声で 1回 音読
+      const nowOn = !learned[w.en];
+      learned[w.en] = nowOn;
+      c.classList.toggle('checked', nowOn);
+      if(nowOn){
+        coins += PER_WORD;
+        coinSound();                                          // チェックは かならず コイン音
+        const groupDone = g.words.every(x => learned[x.en]);  // よこ1れつ ぜんぶ チェック
+        if(groupDone) setTimeout(cheer, 260);                 // そろったら コイン音の あとに「いえーい！」
+      } else {
+        coins = Math.max(0, coins - PER_WORD);
+        uncheckSound();
+      }
+      saveAll();
+      updateCoinBar();
+    };
+    grid.appendChild(c);
+  });
+  sec.appendChild(grid);
+  book.appendChild(sec);
+});
+
+// 日本語訳を かくす／つける ボタン
+const jaBtn = document.getElementById('jaToggle');
+if(jaBtn) jaBtn.onclick = () => {
+  const hidden = book.classList.toggle('hide-ja');
+  jaBtn.classList.toggle('on', hidden);
+  jaBtn.innerHTML = hidden
+    ? '<ruby>日本語訳<rt>にほんごやく</rt></ruby>を つける 👀'
+    : '<ruby>日本語訳<rt>にほんごやく</rt></ruby>を <ruby>隠<rt>かく</rt></ruby>す 🙈';
+};
+
+// コットンキャンディを かう（100コイン）
+const buyBtn = document.getElementById('buyCandy');
+if(buyBtn) buyBtn.onclick = () => {
+  if(coins < CANDY_COST) return;
+  coins -= CANDY_COST;
+  candy += 1;
+  buySound();
+  saveAll();
+  updateCoinBar();
+};
+
+updateCoinBar();
+
+// ===== 英単語が セルから はみ出ない／消えないよう、はばに あわせて 文字サイズ調整 =====
+function fitWords(){
+  document.querySelectorAll('#book .en').forEach(en => {
+    en.style.whiteSpace = 'nowrap';
+    en.style.wordBreak = '';
+    en.style.fontSize = '';
+    if(!en.clientWidth) return;                     // まだ 表示前なら さわらない（消え防止）
+    let size = parseFloat(getComputedStyle(en).fontSize) || 14;
+    let guard = 0;
+    while(en.scrollWidth > en.clientWidth + 0.5 && size > 9 && guard < 30){
+      size -= 0.5; en.style.fontSize = size + 'px'; guard++;
+    }
+    if(en.scrollWidth > en.clientWidth + 0.5){       // それでも収まらなければ 折り返す（必ず表示）
+      en.style.whiteSpace = 'normal';
+      en.style.wordBreak = 'break-word';
+    }
+  });
+}
+window.addEventListener('load', fitWords);           // 画像・フォント読み込み後に 確実に実行
+fitWords();
+window.addEventListener('resize', fitWords);
+</script>
+</body>
+</html>

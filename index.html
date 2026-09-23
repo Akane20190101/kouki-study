@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#4d8bff">
+<title>こうきくんのマレーシア留学サポート！</title>
+<style>
+  :root{
+    --blue:#4d8bff;
+    --blue-dark:#2f6ae0;
+    --cream:#f4f9ff;
+    --navy:#233047;
+    --gray:#6b7488;
+    --card:#ffffff;
+    --line:#dbe7f7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    font-family:"Hiragino Maru Gothic ProN","Hiragino Sans",sans-serif;
+    background:var(--cream);color:var(--navy);line-height:1.5;
+    min-height:100vh;min-height:100dvh;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+
+  /* ===== ヘッダー ===== */
+  header{
+    position:sticky;top:0;z-index:10;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:calc(14px + env(safe-area-inset-top)) 20px 14px;
+    background:var(--blue);color:#fff;
+    box-shadow:0 2px 10px rgba(77,139,255,.25);
+  }
+  .logo{text-align:center;line-height:1.15;}
+  .logo-sub{display:block;font-size:12px;font-weight:700;opacity:.92;letter-spacing:.04em;}
+  .logo-main{
+    display:block;white-space:nowrap;font-size:29px;font-weight:900;letter-spacing:.02em;margin-top:3px;
+    background:linear-gradient(180deg,#ffffff 0%,#ffe7a0 100%);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;color:transparent;
+    -webkit-text-stroke:.7px rgba(23,48,90,.28);
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.32));
+  }
+  .logo-main rt{
+    -webkit-text-fill-color:#eaf2ff;color:#eaf2ff;
+    -webkit-text-stroke:0;background:none;
+  }
+
+  /* ===== 本体 ===== */
+  .wrap{max-width:560px;margin:0 auto;padding:12px 16px 22px;}
+
+  .hero{
+    text-align:center;padding:8px 16px 2px;
+  }
+  .hero .emoji{font-size:30px;line-height:1;}
+  h1{font-size:20px;font-weight:900;margin:3px 0 2px;}
+  .sub{font-size:12px;color:var(--gray);}
+
+  .section-label{
+    display:flex;align-items:center;gap:8px;
+    font-size:13px;font-weight:800;color:var(--gray);
+    margin:12px 4px 8px;
+  }
+  .section-label::after{content:"";flex:1;height:1px;background:var(--line);}
+  /* 「◯日目の課題」を 水色の枠で囲む（CAT4レベルF｜◯日目の課題｜▶️ の よこ ならび）*/
+  #kadaiLabel{
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    width:fit-content;max-width:100%;margin:12px auto 8px;
+    border:2px solid var(--kd-border, #7ec8f5);background:#eaf6ff;border-radius:14px;
+    padding:7px 16px;color:var(--blue-dark);font-size:17px;font-weight:900;
+    transition:border-color .2s, background .2s;
+  }
+  /* カーソルを合わせると わくが こい青に（何日目か わかりやすく）*/
+  #kadaiLabel:hover{border-color:#12336e;background:#dcebfb;}
+  #kadaiLabel::after{content:none;}
+  .kd-common{font-weight:900;color:#2f6ae0;font-size:16px;white-space:nowrap;}
+  .kd-day{display:inline-block;min-width:6.4em;text-align:center;white-space:nowrap;}
+  .kd-nav{
+    border:none;background:transparent;font-size:19px;line-height:1;
+    cursor:pointer;padding:2px 3px;flex:none;border-radius:8px;
+  }
+  .kd-nav:active{transform:scale(.85);}
+  .kd-nav:disabled{opacity:.25;cursor:default;}
+  .kd-nav:disabled:active{transform:none;}
+  @keyframes kdIn{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+  .kd-day.kd-in{animation:kdIn .35s ease;}
+  @media (prefers-color-scheme: dark){
+    #kadaiLabel{background:#17293f;border-color:#3a6fd0;}
+  }
+
+  /* ===== 1日目の課題を 大枠で囲って いちばん目立たせる ===== */
+  .col-left{
+    background:#d3e6ff;
+    border:3px solid #5f9ff0;
+    border-radius:20px;
+    padding:14px 14px 16px;
+    box-shadow:0 5px 16px rgba(77,139,255,.22);
+  }
+  @media (prefers-color-scheme: dark){
+    .col-left{background:#16273d;border-color:#3a6fd0;}
+  }
+
+  /* ===== 宿題カードの一覧 ===== */
+  .grid{display:flex;flex-direction:column;gap:8px;}
+
+  .card{
+    display:flex;align-items:center;gap:12px;
+    background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:10px 14px;
+    text-decoration:none;color:inherit;
+    box-shadow:0 2px 8px rgba(35,48,71,.05);
+    transition:transform .12s ease, box-shadow .12s ease;
+  }
+  .card:active{transform:scale(.98);box-shadow:0 1px 4px rgba(35,48,71,.08);}
+  .card .icon{
+    flex:none;width:46px;height:46px;border-radius:12px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:25px;background:#eaf2ff;
+  }
+  .card .body{flex:1;min-width:0;}
+  .card .title{font-size:19px;font-weight:800;white-space:nowrap;}
+  .card .meta{font-size:14px;color:var(--gray);margin-top:2px;}
+  .card .chev{flex:none;color:#b9c6da;font-size:20px;font-weight:900;}
+
+  /* まだ準備中のカード */
+  .card.soon{opacity:.6;pointer-events:none;background:#fbfdff;}
+  .badge{
+    display:inline-block;font-size:11px;font-weight:800;
+    padding:2px 8px;border-radius:999px;background:#eef3fb;color:var(--gray);
+    margin-top:4px;
+  }
+
+  /* ===== 空っぽの案内 ===== */
+  .empty{
+    background:#fff;border:2px dashed #bcd2f2;border-radius:16px;
+    padding:22px 18px;color:var(--gray);font-size:13px;line-height:1.9;
+    text-align:center;margin-top:12px;
+  }
+  .empty b{color:var(--navy);}
+
+  /* ===== ルビ（ふりがな）===== */
+  ruby{ruby-align:center;}
+  rt{
+    font-size:.5em;font-weight:600;color:var(--gray);
+    letter-spacing:0;user-select:none;
+  }
+
+  footer{
+    text-align:center;font-size:11px;color:#a9b3c4;margin-top:28px;
+  }
+
+  /* ===== がんばった表（カレンダー）===== */
+  .cal-bottom{margin:10px auto 0;max-width:380px;}
+  /* 4か月を 2れつ×2だんで よこ ならび */
+  #calendar{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 12px;}
+  .cal-head{text-align:center;margin-bottom:6px;}
+  .cal-head h2{font-size:16px;font-weight:900;}
+  .cal-head .cal-sub{font-size:11px;color:var(--gray);font-weight:700;margin-top:2px;line-height:1.55;}
+  /* 頑張った表の見出しを 枠で囲って 区別 */
+  .cal-titlebox{
+    border:2px solid #ffd0a8;background:#fff7ef;border-radius:14px;
+    padding:7px 16px;margin:0 auto 10px;width:fit-content;max-width:100%;
+  }
+  @media (prefers-color-scheme: dark){
+    .cal-titlebox{background:#2a2117;border-color:#8a6a3a;}
+  }
+  .cal-count{
+    display:inline-block;margin:10px auto 0;font-size:13px;font-weight:800;color:#0e7a52;
+    background:#e6f8f0;border-radius:999px;padding:5px 14px;
+  }
+  .cal-month{margin-top:0;}
+  .cal-mlabel{font-size:11px;font-weight:900;margin:0 1px 4px;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-auto-rows:21px;gap:2px;}
+  .cal-wd{display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:var(--gray);}
+  .cal-wd.sun{color:#ef5a6b;} .cal-wd.sat{color:#4d8bff;}
+  .cal-day{
+    position:relative;height:21px;border-radius:5px;border:1px solid var(--line);
+    background:#fff;display:flex;align-items:center;justify-content:center;
+    font-size:10px;font-weight:800;color:var(--navy);cursor:pointer;
+    transition:transform .1s, background .15s;
+  }
+  .cal-day:active{transform:scale(.88);}
+  .cal-day.empty{border:none;background:transparent;cursor:default;}
+  .cal-day .chk{display:none;font-size:12px;color:#fff;}
+  .cal-day.checked{background:#22b07a;border-color:#22b07a;}
+  .cal-day.checked .dnum{position:absolute;top:0;left:2px;font-size:6px;color:rgba(255,255,255,.9);}
+  .cal-day.checked .chk{display:block;}
+
+  /* ===== 成長するなかま パネル ===== */
+  .hero-panel{max-width:340px;margin:10px auto 0;}
+  .hp-inner{
+    background:linear-gradient(165deg,#ffffff,#eaf2ff);
+    border:2px solid #dbe7f7;border-radius:18px;padding:8px 12px 10px;text-align:center;
+    box-shadow:0 4px 16px rgba(77,139,255,.14);line-height:1.25;
+  }
+  .hp-inner.hp-complete{border-color:#f5b301;background:linear-gradient(165deg,#fffdf3,#fff2cf);}
+  .hp-arc{font-size:12px;font-weight:900;color:var(--blue-dark);}
+  .hp-stage{height:112px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;}
+  .hp-img{width:auto;max-width:100%;object-fit:contain;
+    transition:height .4s ease, filter .4s ease, opacity .4s ease;}
+  .hp-lv{font-size:12px;font-weight:900;margin-top:2px;}
+  .lv-bar{display:flex;gap:2px;justify-content:center;margin:3px 0;}
+  .lv-seg{
+    flex:1;max-width:22px;height:15px;border-radius:5px;background:#e3ecfa;color:#9aa5b6;
+    font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;
+  }
+  .lv-seg.on{background:#4d8bff;color:#fff;}
+  .lv-seg.fin{background:#f5b301;color:#fff;}
+  .hp-power{font-size:11px;font-weight:800;color:#0e7a52;margin-top:1px;}
+  .hp-msg{font-size:11px;font-weight:700;color:var(--gray);}
+  .hp-trophies{margin-top:5px;display:flex;flex-wrap:wrap;gap:5px;align-items:center;justify-content:center;}
+  .hp-tlabel{font-size:10px;font-weight:800;color:var(--gray);}
+  .hp-trophy{height:26px;width:26px;object-fit:cover;object-position:top;border-radius:50%;border:2px solid #f5b301;}
+
+  .next-kadai-wrap{text-align:center;margin:12px 0 2px;}
+  .next-kadai{
+    background:var(--blue);color:#fff;border:none;border-radius:999px;
+    font-size:15px;font-weight:900;padding:13px 22px;cursor:pointer;
+    box-shadow:0 4px 12px rgba(77,139,255,.3);
+  }
+  .next-kadai:active{transform:scale(.98);}
+  .next-kadai rt{color:rgba(255,255,255,.85);}
+  .next-kadai:disabled{background:#c3ccd8;box-shadow:none;cursor:default;}
+  .next-kadai:disabled:active{transform:none;}
+
+  .reset-wrap{text-align:center;margin:12px 0 6px;}
+  .cal-reset{
+    background:#fff;border:1.5px solid #bcd2f2;color:#2f6ae0;
+    font-size:13px;font-weight:800;padding:10px 18px;border-radius:999px;cursor:pointer;
+  }
+  .cal-reset:active{transform:scale(.97);}
+  .cal-reset.active{background:#ef5a6b;border-color:#ef5a6b;color:#fff;}
+  .edit-msg{
+    display:none;text-align:center;font-size:12px;font-weight:800;color:#c34b5c;
+    background:#fdeef0;border-radius:12px;padding:9px 12px;margin:6px auto 4px;max-width:340px;line-height:1.6;
+  }
+  #calendar.editing .cal-day.checked{outline:2px solid #ef5a6b;outline-offset:-2px;}
+  .clear-all{
+    margin-top:8px;background:#ef5a6b;color:#fff;border:none;border-radius:999px;
+    font-size:12px;font-weight:800;padding:8px 16px;cursor:pointer;
+  }
+  .clear-all rt{color:rgba(255,255,255,.85);}
+  .clear-all:active{transform:scale(.97);}
+
+  .modal-overlay{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;
+    align-items:center;justify-content:center;padding:24px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-box{
+    background:#fff;border-radius:18px;padding:22px 20px;max-width:300px;width:100%;
+    text-align:center;box-shadow:0 12px 34px rgba(0,0,0,.28);
+  }
+  .modal-msg{font-size:15px;font-weight:800;color:var(--navy);line-height:1.7;margin-bottom:18px;}
+  .modal-btns{display:flex;gap:10px;}
+  .modal-yes,.modal-no{flex:1;padding:13px;border:none;border-radius:12px;font-size:15px;font-weight:900;cursor:pointer;}
+  .modal-yes{background:#ef5a6b;color:#fff;}
+  .modal-no{background:#eef3fb;color:var(--navy);}
+  .modal-yes:active,.modal-no:active{transform:scale(.97);}
+  @media (prefers-color-scheme: dark){
+    .modal-box{background:#1c2531;}
+    .modal-no{background:#26344a;color:#eef3fb;}
+  }
+  @media (prefers-color-scheme: dark){
+    .cal-reset{background:#1c2531;border-color:#33465c;color:#8ab4ff;}
+    .edit-msg{background:#361d22;color:#ff9aa6;}
+  }
+
+  @media (prefers-color-scheme: dark){
+    :root{
+      --cream:#141a24;--navy:#eef3fb;--gray:#9aa5b6;
+      --card:#1c2531;--line:#2c3849;--blue-dark:#3a6fd0;
+    }
+    body{background:var(--cream);}
+    .card .icon{background:#26344a;}
+    .card.soon{background:#182029;}
+    .badge{background:#26344a;}
+    .empty{background:#1c2531;border-color:#33465c;}
+    .cal-day{background:#1c2531;}
+    .cal-count{background:#183226;color:#7fe3b6;}
+    .hp-inner{background:linear-gradient(165deg,#1c2531,#20304a);border-color:#2c3849;}
+    .hp-inner.hp-complete{background:linear-gradient(165deg,#2a2617,#3a3111);border-color:#c99a20;}
+    .hp-power{color:#7fe3b6;}
+  }
+  /* ===== パソコン（大きい画面）は 2カラムで 1画面に収める ===== */
+  @media (min-width: 820px){
+    header{padding:calc(8px + env(safe-area-inset-top)) 20px 8px;}
+    .logo-main{font-size:26px;}
+    .logo-sub{font-size:12px;}
+    .wrap{max-width:1120px;padding:8px 32px 10px;}
+    h1{font-size:19px;margin:0;}
+    .hero{padding:1px 16px 1px;}
+    .hero .emoji{font-size:20px;}
+    .sub{font-size:11px;margin-top:0;}
+    .next-kadai{font-size:14px;padding:9px 20px;}
+    #kadaiLabel{margin:0 auto 7px;font-size:15px;padding:5px 16px;}
+    .card{padding:7px 12px;gap:10px;}
+    .card .icon{width:38px;height:38px;font-size:20px;border-radius:11px;}
+    .card .title{font-size:18px;line-height:1.2;}
+    .card .meta{font-size:13px;line-height:1.3;margin-top:1px;}
+
+    /* 左：課題カード ／ 右：頑張った表 を よこ ならび */
+    .cols{display:flex;gap:30px;align-items:flex-start;}
+    .col-left{flex:0 0 440px;}
+    .col-right{flex:1;min-width:0;}
+
+    #kadaiLabel{font-size:16px;margin:0 auto 10px;}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;align-items:stretch;}
+    .card{height:100%;}
+    .next-kadai{font-size:15px;padding:12px 22px;}
+
+    /* キャラパネル：コンパクトに（右カラム中央）*/
+    .hero-panel{max-width:440px;margin:2px auto;}
+    .hp-inner{padding:5px 12px 7px;}
+    .hp-stage{height:104px;}
+    .hp-lv{font-size:14px;margin-top:1px;} .hp-power{font-size:13px;} .hp-msg{font-size:13px;}
+    .hp-arc{font-size:14px;}
+    .lv-bar{margin:2px 0;}
+    .lv-seg{max-width:26px;height:16px;font-size:10px;}
+    .hp-trophy{height:28px;width:28px;}
+
+    /* 下段カレンダー：横4か月・読みやすいセル */
+    .cal-bottom{max-width:none;margin:8px 0 0;}
+    #calendar{grid-template-columns:repeat(4,1fr);gap:6px 26px;}
+    .cal-grid{grid-auto-rows:24px;gap:3px;}
+    .cal-day{height:24px;font-size:14px;border-radius:6px;}
+    .cal-day .chk{font-size:15px;}
+    .cal-day.checked .dnum{font-size:8px;}
+    .cal-wd{font-size:11px;}
+    .cal-mlabel{font-size:14px;margin-bottom:4px;}
+    .edit-msg{max-width:none;font-size:13px;text-align:center;}
+    .reset-wrap{margin:8px 0 0;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-sub">📒 こうきくんの</span>
+    <span class="logo-main">マレーシア<ruby>留学<rt>りゅうがく</rt></ruby>サポート！</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="emoji">🐣</div>
+    <h1>1<ruby>日<rt>にち</rt></ruby>30<ruby>分<rt>ぷん</rt></ruby>とりくもう</h1>
+    <p class="sub">やりたいものをえらんでね</p>
+  </div>
+
+  <div class="cols">
+  <div class="col-left">
+
+  <div class="section-label" id="kadaiLabel">
+    <span class="kd-common">CAT4 レベルF</span>
+    <button class="kd-nav" id="kadaiPrev" aria-label="まえの日にもどる">◀️</button>
+    <span class="kd-day" id="kadaiDayText">1<ruby>日目<rt>にちめ</rt></ruby>の<ruby>課題<rt>かだい</rt></ruby></span>
+    <button class="kd-nav" id="kadaiNext" aria-label="つぎの日にすすむ">▶️</button>
+  </div>
+
+  <div class="grid">
+
+    <!-- ▼ ここに宿題を1つずつカードで足していきます -->
+    <!-- サンプル（まだ中身なし）: -->
+    <a class="card" id="cardTango" href="tango.html?day=1">
+      <div class="icon">🔤</div>
+      <div class="body">
+        <div class="title"><ruby>単語<rt>たんご</rt></ruby>を<ruby>覚<rt>おぼ</rt></ruby>えよう！</div>
+        <div class="meta">えで おぼえる <ruby>単語帳<rt>たんごちょう</rt></ruby></div>
+      </div>
+      <div class="chev">›</div>
+    </a>
+
+    <a class="card" id="cardYasashi" href="renshu.html?day=1">
+      <div class="icon">✏️</div>
+      <div class="body">
+        <div class="title">やさしめ<ruby>練習問題<rt>れんしゅうもんだい</rt></ruby></div>
+        <div class="meta">（<ruby>日本語訳<rt>にほんごやく</rt></ruby>あり）</div>
+      </div>
+      <div class="chev">›</div>
+    </a>
+
+    <a class="card" id="cardHonban" href="renshu.html?day=1&mode=en">
+      <div class="icon">✏️</div>
+      <div class="body">
+        <div class="title">ほんばん<ruby>練習問題<rt>れんしゅうもんだい</rt></ruby></div>
+        <div class="meta">（<ruby>日本語訳<rt>にほんごやく</rt></ruby>なし）</div>
+      </div>
+      <div class="chev">›</div>
+    </a>
+
+    <a class="card" id="cardEisaku" href="eisakubun.html">
+      <div class="icon">📝</div>
+      <div class="body">
+        <div class="title"><ruby>英作文<rt>えいさくぶん</rt></ruby>ステップ</div>
+        <div class="meta">かんたんな ところから 1だんずつ</div>
+      </div>
+      <div class="chev">›</div>
+    </a>
+
+    <a class="card soon" href="#">
+      <div class="icon">🗣️</div>
+      <div class="body">
+        <div class="title"><ruby>面接練習<rt>めんせつれんしゅう</rt></ruby></div>
+        <div class="meta">みてい</div>
+      </div>
+      <div class="chev">›</div>
+    </a>
+
+  </div>
+
+  </div><!-- col-left -->
+
+  <div class="col-right">
+    <div class="cal-head">
+      <div class="cal-titlebox">
+        <h2>🌟 こうきくんの<ruby>頑張<rt>がんば</rt></ruby>った<ruby>表<rt>ひょう</rt></ruby></h2>
+        <p class="cal-sub">がんばった<ruby>日<rt>ひ</rt></ruby>は タップして チェック！✓（2026<ruby>年<rt>ねん</rt></ruby>8<ruby>月<rt>がつ</rt></ruby>〜11<ruby>月<rt>がつ</rt></ruby>）</p>
+      </div>
+      <div class="hero-panel" id="heroPanel"></div>
+      <div class="cal-count" id="calCount">がんばった<ruby>日<rt>ひ</rt></ruby>：0<ruby>日<rt>にち</rt></ruby></div>
+    </div>
+  </div><!-- col-right -->
+  </div><!-- cols -->
+
+  <div class="cal-bottom">
+    <div class="edit-msg" id="editMsg">✏️ チェックを <ruby>取<rt>と</rt></ruby>り<ruby>消<rt>け</rt></ruby>したい<ruby>日<rt>ひ</rt></ruby>を えらんでください（タップで きえます）　<button class="clear-all" id="clearAll"><ruby>全<rt>ぜん</rt></ruby><ruby>日程<rt>にってい</rt></ruby>チェック<ruby>削除<rt>さくじょ</rt></ruby> 🗑️</button></div>
+    <div id="calendar"></div>
+    <div class="reset-wrap">
+      <button class="cal-reset" id="calReset">カレンダーを <ruby>修正<rt>しゅうせい</rt></ruby>する ✏️</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="clearModal">
+    <div class="modal-box">
+      <div class="modal-msg">🗑️ <ruby>全<rt>ぜん</rt></ruby><ruby>日程<rt>にってい</rt></ruby>の チェックを<br><ruby>本当<rt>ほんとう</rt></ruby>に <ruby>削除<rt>さくじょ</rt></ruby>しますか？</div>
+      <div class="modal-btns">
+        <button class="modal-yes" id="clearYes">はい</button>
+        <button class="modal-no" id="clearNo">いいえ</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  const WD = ["日","月","火","水","木","金","土"];
+  const MONTHS = [ [2026,8], [2026,9], [2026,10], [2026,11] ]; // 8〜11月
+  const KEY = "kouki-ganbatta";
+  let data = {};
+  try { data = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch(e){ data = {}; }
+  let editMode = false;
+
+  const cal = document.getElementById('calendar');
+
+  // 「きらりん✨」サウンド（チェックを入れたとき）— やわらかい sine の きらめき
+  let actx;
+  function playChime(){
+    try{
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if(actx.state === 'suspended') actx.resume();
+      const now = actx.currentTime;
+      const notes = [1046.5, 1318.5, 1568.0, 2093.0]; // ド・ミ・ソ・ド（上昇のきらめき）
+      notes.forEach((f, i) => {
+        const o = actx.createOscillator();
+        const g = actx.createGain();
+        o.type = 'sine';                        // sine = やわらかい
+        o.frequency.value = f;
+        const t = now + i * 0.05;
+        const vol = 0.12 - i * 0.015;           // 高い音ほど 小さめ（耳に やさしく）
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+        o.connect(g); g.connect(actx.destination);
+        o.start(t); o.stop(t + 0.24);
+      });
+    }catch(e){}
+  }
+
+  function updateCount(){
+    const n = Object.values(data).filter(Boolean).length;
+    document.getElementById('calCount').innerHTML =
+      'がんばった<ruby>日<rt>ひ</rt></ruby>：' + n + '<ruby>日<rt>にち</rt></ruby>';
+  }
+
+  // ===== 成長するなかま（9キャラ・各10日）=====
+  const DET  = ["かんさつりょく","すいり","へんそう","きおくりょく","ちゃくもく","ろんりりょく","ちょっかん","ぶんせき","けいさん","しんそうかいめい"];
+  const HERO = ["パワー","スピード","ジャンプ","ぼうぎょ","ひっさつわざ","ゆうき","なかまのちから","とっしん","かいひ","フルパワー"];
+  const JUJU = ["じゅりょく","けっかい","ふだ","しきがみ","ちょうはつ","りょういき","こんしんのいちげき","かいてん","はんてん","さいきょう"];
+  // 蘭ちゃん（たんてい少女）は キャラらしい 10項目
+  const RAN = [
+    '<ruby>新一<rt>しんいち</rt></ruby>のことを<ruby>考<rt>かんが</rt></ruby>えた',
+    '<ruby>新一<rt>しんいち</rt></ruby>を<ruby>心配<rt>しんぱい</rt></ruby>した',
+    '<ruby>新一<rt>しんいち</rt></ruby>の<ruby>写真<rt>しゃしん</rt></ruby>を<ruby>見返<rt>みかえ</rt></ruby>した',
+    '<ruby>新一<rt>しんいち</rt></ruby>の<ruby>夢<rt>ゆめ</rt></ruby>を<ruby>見<rt>み</rt></ruby>た',
+    '<ruby>新一<rt>しんいち</rt></ruby>から<ruby>来<rt>き</rt></ruby>たメールを<ruby>見返<rt>みかえ</rt></ruby>した',
+    'コナンくんが<ruby>可愛<rt>かわい</rt></ruby>いと<ruby>思<rt>おも</rt></ruby>った',
+    'コナンくんが<ruby>賢<rt>かしこ</rt></ruby>いと<ruby>思<rt>おも</rt></ruby>った',
+    'コナンくんが<ruby>小<rt>ちい</rt></ruby>さい<ruby>頃<rt>ころ</rt></ruby>の<ruby>新一<rt>しんいち</rt></ruby>に<ruby>似<rt>に</rt></ruby>ていると<ruby>思<rt>おも</rt></ruby>った',
+    'コナンくんが<ruby>新一<rt>しんいち</rt></ruby>の<ruby>親戚<rt>しんせき</rt></ruby>かもしれないと<ruby>思<rt>おも</rt></ruby>った',
+    'コナンくんが もしかしたら<br><ruby>新一<rt>しんいち</rt></ruby>かもしれないと<ruby>思<rt>おも</rt></ruby>った',
+  ];
+  const ARCS = [
+    // 🕵️ 探偵シリーズ
+    { name:"🕵️ <ruby>少年<rt>しょうねん</rt></ruby>たんてい", img:"images/S__15499314_0.jpg", glow:"#4d8bff", powers:DET },
+    { name:"🕵️ <ruby>青年<rt>せいねん</rt></ruby>たんてい", img:"images/S__15499315.jpg",   glow:"#2f6ae0", powers:DET },
+    { name:"🕵️ たんてい<ruby>少女<rt>しょうじょ</rt></ruby>",  img:"images/S__15499313_0.jpg", glow:"#ef5a6b", powers:RAN,
+      fin:'<ruby>真一<rt>しんいち</rt></ruby>への<ruby>想<rt>おも</rt></ruby>いが<ruby>全開<rt>ぜんかい</rt></ruby>になった！' },
+    // 🦸 ヒーローシリーズ
+    { name:"🦸 みどりヒーロー",         img:"images/S__15499309_0.jpg", glow:"#22b07a", powers:HERO },
+    { name:"🦸 ばくはつヒーロー",       img:"images/S__15499308_0.jpg", glow:"#f5a623", powers:HERO },
+    { name:"🦸 ほのおと<ruby>氷<rt>こおり</rt></ruby>のヒーロー", img:"images/S__15499307_0.jpg", glow:"#ff5a4d", powers:HERO },
+    // 🔮 じゅつしシリーズ
+    { name:"🔮 ピンクじゅつし",   img:"images/S__15499312_0.jpg", glow:"#e0459a", powers:JUJU },
+    { name:"🔮 しろかみじゅつし", img:"images/S__15499311_0.jpg", glow:"#3aa0ff", powers:JUJU },
+    { name:"🔮 かげじゅつし",     img:"images/S__15499310_0.jpg", glow:"#8e6bd6", powers:JUJU },
+  ];
+
+  function renderHero(){
+    const n = Object.values(data).filter(Boolean).length;
+    const el = document.getElementById('heroPanel');
+    const TOTAL = ARCS.length * 10;   // 30日で ぜんぶ コンプリート
+    let activeIdx, day, done, allDone = false;
+    if(n === 0){ activeIdx = 0; day = 0; done = 0; }
+    else if(n >= TOTAL){ activeIdx = ARCS.length-1; day = 10; done = ARCS.length; allDone = true; }
+    else { activeIdx = Math.floor((n-1)/10); day = n - activeIdx*10; done = activeIdx; }
+    const arc = ARCS[activeIdx];
+    const complete = day === 10;
+    const p = (n === 0) ? 0.12 : day/10;               // せいちょう度 0〜1
+    const wide = window.innerWidth >= 820;             // パソコンの大きい画面
+    const h = Math.round((wide ? 56 : 52) + p * (wide ? 46 : 50)); // PC:〜102px / 携帯:〜102px
+    const gray = Math.round((1-p)*70);                 // だんだん カラーに
+    const glowR = Math.round(p*20);                    // だんだん オーラが つよく
+    const op = (0.55 + p*0.45).toFixed(2);
+
+    // レベルゲージ（1〜10）
+    let bar = '';
+    for(let i=1;i<=10;i++){
+      bar += '<span class="lv-seg'+(i<=day?' on':'')+(i===10&&complete?' fin':'')+'">'+(i===10?'★':i)+'</span>';
+    }
+
+    let msg, power, lvText, arcName = arc.name;
+    if(n === 0){
+      lvText = 'Lv.1 に むかって…';
+      msg = '<ruby>練習問題<rt>れんしゅうもんだい</rt></ruby>を がんばると キャラクターが <ruby>強<rt>つよ</rt></ruby>くなるぞ';
+      power = 'カレンダーを タップして スタート！';
+    } else if(allDone){
+      arcName = '🏆 ぜんぶ コンプリート！';
+      lvText = 'ALL COMPLETE ★';
+      msg = 'ぜんぶの なかまが さいきょうに なった！';
+      power = 'すごい！ よく がんばったね！🎉';
+    } else if(complete){
+      lvText = 'Lv.10 ★COMPLETE★';
+      msg = arc.fin ? 'コンプリート！🎉 ' + arc.fin : 'コンプリート！🎉 さいきょうに なった！';
+      power = 'きょうの ちから：' + arc.powers[9] + ' をゲット！';
+    } else {
+      lvText = 'Lv.' + day + ' / 10';
+      msg = 'あと ' + (10-day) + '日で コンプリート！';
+      power = 'きょうの ちから：' + arc.powers[day-1] + ' をゲット！';
+    }
+
+    let trophies = '';
+    for(let i=0;i<done;i++){
+      trophies += '<img class="hp-trophy" src="'+ARCS[i].img+'" alt="">';
+    }
+
+    el.innerHTML =
+      '<div class="hp-inner'+((complete||allDone)?' hp-complete':'')+'">'
+      + '<div class="hp-arc">'+arcName+'</div>'
+      + '<div class="hp-stage"><img class="hp-img" src="'+arc.img+'" alt="" '
+      +   'style="height:'+h+'px;filter:grayscale('+gray+'%) drop-shadow(0 0 '+glowR+'px '+arc.glow+');opacity:'+op+'"></div>'
+      + '<div class="hp-lv">'+lvText+'</div>'
+      + '<div class="lv-bar">'+bar+'</div>'
+      + '<div class="hp-power">'+power+'</div>'
+      + '<div class="hp-msg">'+msg+'</div>'
+      + (trophies ? '<div class="hp-trophies"><span class="hp-tlabel">コンプリート：</span>'+trophies+'</div>' : '')
+      + '</div>';
+  }
+
+  MONTHS.forEach(([y, m]) => {
+    const month = document.createElement('div');
+    month.className = 'cal-month';
+    month.innerHTML = '<div class="cal-mlabel">' + y + '<ruby>年<rt>ねん</rt></ruby>' + m + '<ruby>月<rt>がつ</rt></ruby></div>';
+
+    const grid = document.createElement('div');
+    grid.className = 'cal-grid';
+
+    WD.forEach((w, i) => {
+      const h = document.createElement('div');
+      h.className = 'cal-wd' + (i===0?' sun':'') + (i===6?' sat':'');
+      h.textContent = w;
+      grid.appendChild(h);
+    });
+
+    const first = new Date(y, m-1, 1).getDay();      // 0=日（1日の曜日）
+    const days = new Date(y, m, 0).getDate();         // その月の日数
+    for(let d=1; d<=days; d++){
+      const key = y + '-' + m + '-' + d;
+      const cell = document.createElement('div');
+      cell.className = 'cal-day' + (data[key] ? ' checked' : '');
+      if(d === 1 && first > 0) cell.style.gridColumnStart = first + 1; // 1日を正しい曜日に
+      cell.innerHTML = '<span class="dnum">' + d + '</span><span class="chk">✓</span>';
+      cell.onclick = () => {
+        if(editMode){
+          if(!data[key]) return;              // しゅうせいモード：チェック済みだけ けせる
+          delete data[key];
+          cell.classList.remove('checked');
+        } else {
+          if(data[key]) return;               // ふつうモード：一度チェックしたら とりけせない
+          data[key] = true;
+          cell.classList.add('checked');
+          playChime();
+        }
+        try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e){}
+        updateCount();
+        renderHero();
+      };
+      grid.appendChild(cell);
+    }
+    month.appendChild(grid);
+    cal.appendChild(month);
+  });
+
+  // しゅうせいボタン（チェックを 個別に とりけせる モード）
+  const resetBtn = document.getElementById('calReset');
+  const editMsg = document.getElementById('editMsg');
+  if(resetBtn) resetBtn.onclick = () => {
+    editMode = !editMode;
+    resetBtn.classList.toggle('active', editMode);
+    if(editMsg) editMsg.style.display = editMode ? 'block' : 'none';
+    document.getElementById('calendar').classList.toggle('editing', editMode);
+    resetBtn.innerHTML = editMode
+      ? 'しゅうせいを おわる ✓'
+      : 'カレンダーを <ruby>修正<rt>しゅうせい</rt></ruby>する ✏️';
+  };
+
+  // 全日程チェック削除（はい／いいえ ダイアログ）
+  const clearAllBtn = document.getElementById('clearAll');
+  const clearModal = document.getElementById('clearModal');
+  const clearYes = document.getElementById('clearYes');
+  const clearNo = document.getElementById('clearNo');
+  if(clearAllBtn) clearAllBtn.onclick = () => { if(clearModal) clearModal.classList.add('show'); };
+  if(clearNo) clearNo.onclick = () => clearModal.classList.remove('show');
+  if(clearModal) clearModal.onclick = (e) => { if(e.target === clearModal) clearModal.classList.remove('show'); };
+  if(clearYes) clearYes.onclick = () => {
+    data = {};
+    try { localStorage.setItem(KEY, JSON.stringify(data)); } catch(e){}
+    document.querySelectorAll('.cal-day.checked').forEach(c => c.classList.remove('checked'));
+    updateCount();
+    renderHero();
+    clearModal.classList.remove('show');
+    // 実行したら しゅうせいモードを おわる（案内文も きえる）
+    editMode = false;
+    resetBtn.classList.remove('active');
+    if(editMsg) editMsg.style.display = 'none';
+    document.getElementById('calendar').classList.remove('editing');
+    resetBtn.innerHTML = 'カレンダーを <ruby>修正<rt>しゅうせい</rt></ruby>する ✏️';
+  };
+
+  // ===== ◯日目の課題：◀️▶️で きりかえ（1日目に もどれば いつでも 復習できる）=====
+  const DAYKEY = "kouki-kadai-day";
+  const MAX_DAY = 33;                                 // つくってある 日数（1日14問・全8カテゴリ入り）。これから 増やしていく。
+  let kadaiDay = parseInt(localStorage.getItem(DAYKEY) || "1", 10) || 1;
+  if(kadaiDay < 1 || kadaiDay > MAX_DAY) kadaiDay = 1;
+  const kadaiLabel = document.getElementById('kadaiLabel');
+  const dayText = document.getElementById('kadaiDayText');
+  const kadaiPrev = document.getElementById('kadaiPrev');
+  const kadaiNext = document.getElementById('kadaiNext');
+  const cardTango = document.getElementById('cardTango');
+  const cardYasashi = document.getElementById('cardYasashi');
+  const cardHonban = document.getElementById('cardHonban');
+  // 日が すすむほど わくが こい青に
+  const KD_COLORS = ['#7ec8f5','#2f6ae0','#2456c4','#1d47a8','#173a8c','#123072','#0e285e','#0b2150','#081a42','#061436'];
+  function dayLabel(d){ return d + '<ruby>日目<rt>にちめ</rt></ruby>の<ruby>課題<rt>かだい</rt></ruby>'; }
+  function renderDay(anim){
+    if(dayText){
+      dayText.innerHTML = dayLabel(kadaiDay);
+      if(anim){ dayText.classList.remove('kd-in'); void dayText.offsetWidth; dayText.classList.add('kd-in'); }
+    }
+    if(kadaiLabel){
+      kadaiLabel.style.setProperty('--kd-border', KD_COLORS[Math.min(kadaiDay-1, KD_COLORS.length-1)]);
+      kadaiLabel.setAttribute('data-day', kadaiDay);
+    }
+    // カードの リンクを その日の 内容へ
+    if(cardTango)   cardTango.href   = 'tango.html?day=' + kadaiDay;
+    if(cardYasashi) cardYasashi.href = 'renshu.html?day=' + kadaiDay;
+    if(cardHonban)  cardHonban.href  = 'renshu.html?day=' + kadaiDay + '&mode=en';
+    // まえ／つぎ ボタンの ゆうこう・むこう
+    if(kadaiPrev) kadaiPrev.disabled = (kadaiDay <= 1);
+    if(kadaiNext) kadaiNext.disabled = (kadaiDay >= MAX_DAY);
+  }
+  function saveDay(){ try { localStorage.setItem(DAYKEY, String(kadaiDay)); } catch(e){} }
+  renderDay(false);
+  if(kadaiNext) kadaiNext.onclick = () => { if(kadaiDay >= MAX_DAY) return; kadaiDay++; saveDay(); renderDay(true); };
+  if(kadaiPrev) kadaiPrev.onclick = () => { if(kadaiDay <= 1) return; kadaiDay--; saveDay(); renderDay(true); };
+
+  updateCount();
+  renderHero();
+  window.addEventListener('resize', renderHero);  // 画面サイズが かわったら 作り直す
+})();
+
+</script>
+
+</body>
+</html>
