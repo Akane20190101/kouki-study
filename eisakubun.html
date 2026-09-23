@@ -88,6 +88,21 @@
   .done{text-align:center;padding:30px 10px;}
   .done .big{font-size:48px;}
   .done h2{font-size:22px;font-weight:900;margin:6px 0;}
+  .gbtn{width:100%;margin-top:14px;border:none;border-radius:14px;padding:13px;font-size:16px;font-weight:900;cursor:pointer;font-family:inherit;background:#ff8a3d;color:#fff;}
+  .gbtn:disabled{opacity:.6;}
+  .grade{margin-top:14px;border:2px solid #ffd1b0;border-radius:16px;padding:14px;background:var(--card);}
+  .grade .sc{font-size:22px;font-weight:900;text-align:center;}
+  .grade .sc small{font-size:14px;color:var(--gray);}
+  .grade .good{margin-top:8px;font-size:14px;color:#0e7a52;}
+  .grade .adv{margin-top:4px;font-size:14px;}
+  .grade .fixed{margin-top:12px;padding:12px;border-radius:12px;background:var(--chip);font-size:17px;line-height:2;}
+  .grade .fixed s{color:var(--gray);}
+  .grade .fixed .rf{color:#e0202f;font-weight:900;}
+  .grade ol{margin:10px 0 0 20px;font-size:14px;line-height:1.8;}
+  .grade ol .rf{color:#e0202f;font-weight:900;}
+  .grade .perfect{margin-top:10px;font-weight:800;color:#0e7a52;}
+  .grade .err{color:var(--red);font-size:14px;}
+  @media (prefers-color-scheme: dark){ .grade .fixed .rf, .grade ol .rf{color:#ff6b78;} }
 </style>
 </head>
 <body>
@@ -322,7 +337,7 @@ function sanbun(s, si, qi, head, next){
     ${q.lines.map((l,k)=>`<div class="line"><label><span class="starter">${esc(l[0])}</span> … <span style="font-weight:600;color:var(--gray)">${l[1]}</span></label>
       <input type="text" data-k="${k}" autocomplete="off" spellcheck="false" placeholder="れい：${esc(l[2])}" value="${esc(saved[k]||'')}"></div>`).join('')}
     <div class="btns"><button class="btn" id="ck">できた！</button></div>
-    <div class="para" id="pa"></div><div class="check" id="chk"></div></div>`;
+    <div class="para" id="pa"></div><div class="check" id="chk"></div><div id="gb"></div></div>`;
   const ins = [...app.querySelectorAll('input[data-k]')];
   ins.forEach(i => i.oninput = () => { S.sanbunText = S.sanbunText || {}; S.sanbunText[qi] = ins.map(x=>x.value); save(); });
   document.getElementById('ck').onclick = () => {
@@ -337,6 +352,8 @@ function sanbun(s, si, qi, head, next){
     document.getElementById('chk').innerHTML = `✅ 3つの 文が できた！（${wc}語）<br>👀 もういちど 読んで、つづりを たしかめよう`;
     markDone(s.key, qi);
     const ck = document.getElementById('ck'); ck.textContent = 'つぎへ'; ck.onclick = next;
+    const gb = document.getElementById('gb');
+    if(!gb.dataset.on){ gb.dataset.on = 1; gradeButton(gb, () => ins.map((i,k) => { let t = q.lines[k][0] + ' ' + i.value.trim(); if(!/[.!?]$/.test(t)) t += '.'; return t; }).join(' '), q.title + ' (3 sentences)'); }
   };
 }
 
@@ -352,6 +369,7 @@ function honban(s, si, qi, head, next){
     <div class="part"><h3>② なか（3〜5文）</h3><p>りゆう や れい を 書く。because / for example / first, second を つかおう</p><textarea data-k="1" spellcheck="false" style="min-height:140px">${esc(saved[1])}</textarea></div>
     <div class="part"><h3>③ おわり（1〜2文）</h3><p>まとめ・気もち・これから</p><textarea data-k="2" spellcheck="false">${esc(saved[2])}</textarea></div>
     <div class="wc" id="wc"></div>
+    <div id="gb"></div>
     <details><summary>おてほんを 見る（書きおわってから）</summary><div class="model">${esc(q.model)} <button class="spk" id="sp">🔊</button></div></details>
     <div class="btns"><button class="btn" id="nx">${qi+1<s.qs.length?'つぎの おだいへ':'おわる'}</button></div></div>`;
   const tas = [...app.querySelectorAll('textarea')];
@@ -365,8 +383,43 @@ function honban(s, si, qi, head, next){
   tas.forEach(t => t.oninput = () => { S.honbanText = S.honbanText || {}; S.honbanText[qi] = tas.map(x=>x.value); save(); upd(); });
   upd();
   document.getElementById('sp').onclick = () => speak(q.model);
+  gradeButton(document.getElementById('gb'), () => tas.map(t=>t.value.trim()).filter(Boolean).join(' '), q.prompt + ' (about ' + GOAL + ' words)');
   app.querySelectorAll('.tabs button').forEach(b => b.onclick = () => openStep(si, +b.dataset.k));
   document.getElementById('nx').onclick = next;
+}
+
+// ===== 採点（AIの先生）=====
+const GRADE_URL = 'https://kouki-malaysia-app.netlify.app/api/grade';
+function gradeButton(box, getText, task){
+  const btn = document.createElement('button');
+  btn.className = 'gbtn'; btn.textContent = '✏️ 採点して、まちがいを直してもらう';
+  const out = document.createElement('div');
+  box.appendChild(btn); box.appendChild(out);
+  btn.onclick = async () => {
+    const text = getText().trim();
+    if(wordCount(text) < 3){ out.innerHTML = '<div class="grade"><div class="err">もうすこし 書いてから おしてね</div></div>'; return; }
+    btn.disabled = true; btn.textContent = '先生が よんでいます…（10びょうくらい）';
+    out.innerHTML = '';
+    try{
+      const r = await fetch(GRADE_URL, {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({text, task})});
+      const g = await r.json();
+      if(!r.ok || g.error) throw new Error(g.error || 'error');
+      const miss = g.segments.filter(x => !('t' in x));
+      const fixed = g.segments.map(x => 't' in x ? esc(x.t)
+        : (x.x ? `<s>${esc(x.x)}</s>` : '') + ` <span class="rf">${esc(x.f)}</span>`).join('');
+      out.innerHTML = `<div class="grade">
+        <div class="sc">${'★'.repeat(Math.round(g.score/2))}${'☆'.repeat(5-Math.round(g.score/2))}　${g.score}<small> / 10てん</small></div>
+        ${g.good ? `<div class="good">👍 ${esc(g.good)}</div>` : ''}
+        ${g.advice ? `<div class="adv">💡 ${esc(g.advice)}</div>` : ''}
+        ${miss.length ? `<div class="fixed">${fixed}</div>
+          <ol>${miss.map(x => `<li>${x.x ? `<s>${esc(x.x)}</s> → ` : ''}<span class="rf">${esc(x.f)}</span>：${esc(x.w)}</li>`).join('')}</ol>`
+          : '<div class="perfect">🎉 まちがいは ありませんでした！</div>'}
+      </div>`;
+    }catch(e){
+      out.innerHTML = '<div class="grade"><div class="err">いま 採点できませんでした。すこし まってから もういちど おしてね</div></div>';
+    }
+    btn.disabled = false; btn.textContent = '✏️ もういちど 採点してもらう';
+  };
 }
 
 home();
